@@ -4,38 +4,47 @@
     url = https://github.com/verilator/verilator
     branch = master
     ignore = untracked
-    update = checkout
 [submodule "tools/bsg_sv2v"]
     path = tools/bsg_sv2v
     url = https://github.com/bespoke-silicon-group/bsg_sv2v
     branch = master
     ignore = untracked
-    update = checkout
 [submodule "tools/dromajo"]
 	path = tools/dromajo
 	url = https://github.com/bsg-external/dromajo
     branch = blackparrot_mods
-    update = checkout
 [submodule "tools/Surelog"]
     path = tools/Surelog
     url = https://github.com/alainmarcel/Surelog
     branch = master
     ignore = untracked
-    update = checkout
+[submodule "tools/dromajo"]
+	path = tools/dromajo
+	url = https://github.com/bsg-external/dromajo
+    branch = blackparrot_mods
 
 [submodule "external/basejump_stl"]
     path = external/basejump_stl
     url = https://github.com/bespoke-silicon-group/basejump_stl.git
     branch = master
-    update = checkout
 [submodule "external/HardFloat"]
     path = external/HardFloat
     url = https://github.com/bsg-external/HardFloat.git
     branch = master
-    update = checkout
 [submodule "external/bsg_cadenv"]
     path = external/bsg_cadenv
     url = https://github.com/bespoke-silicon-group/bsg_cadenv
     branch = master
     update = none
-
+[submodule "external/riscv-dbg"]
+    path = external/riscv-dbg
+    url = https://github.com/pulp-platform/riscv-dbg
+    branch = master
+[submodule "external/common_cells"]
+	path = external/common_cells
+	url = https://github.com/pulp-platform/common_cells
+    branch = master
+[submodule "external/tech_cells_generic"]
+	path = external/tech_cells_generic
+	url = https://github.com/pulp-platform/tech_cells_generic
+    branch = master
