@@ -162,6 +162,8 @@ module bp_nonsynth_host
       if (getchar_r_v_li)
         pop();
 
+      if (io_cmd_ready_and_o & io_cmd_v_i & (hio_id != '0))
+        $error("Warning: Accesing illegal hio %0h. Sending loopback message!", hio_id);
       for (integer i = 0; i < num_core_p; i++)
         begin
           // PASS when returned value in finish packet is zero
@@ -175,6 +177,12 @@ module bp_nonsynth_host
       if (&finish_r)
         begin
           $display("All cores finished! Terminating...");
+          $finish();
+        end
+
+      if (finish_all_data_cmd_v)
+        begin
+          $display("Finish all command received!. Terminating...");
           $finish();
         end
     end
