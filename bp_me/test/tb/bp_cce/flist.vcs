@@ -20,6 +20,8 @@ $BP_ME_DIR/src/v/dev/bp_me_dram_hash_encode.sv
 $BP_ME_DIR/test/common/bp_me_nonsynth_pkg.sv
 $BP_ME_DIR/test/common/bp_me_nonsynth_cce_tracer.sv
 $BP_ME_DIR/test/common/bp_me_nonsynth_cce_dir_tracer.sv
+$BP_ME_DIR/test/common/bp_me_nonsynth_cce_inst_tracer.sv
+$BP_ME_DIR/test/common/bp_me_nonsynth_cce_perf.sv
 $BP_ME_DIR/test/common/bp_me_nonsynth_lce_tracer.sv
 $BP_ME_DIR/test/common/bp_me_nonsynth_lce_tr_tracer.sv
 $BP_ME_DIR/test/common/bp_me_nonsynth_mock_lce_tag_lookup.sv
