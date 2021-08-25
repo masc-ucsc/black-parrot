@@ -361,11 +361,11 @@ module bp_be_pipe_mem
 
   assign tlb_store_miss_v_o     = is_store_mem2 & dtlb_miss_v;
   assign tlb_load_miss_v_o      = ~is_store_mem2 & dtlb_miss_v;
-  // Need to make early_miss when cache_fail is implemented
   assign cache_miss_v_o         = is_req_mem3 & ~dcache_early_hit_v & cache_req_yumi_i;
   assign cache_fail_v_o         = is_req_mem3 & ~dcache_early_hit_v & ~cache_req_yumi_i;
   assign fencei_clean_v_o       = is_fencei_mem3 & dcache_early_hit_v;
   assign fencei_dirty_v_o       = is_fencei_mem3 & ~dcache_early_hit_v;
+
   assign store_page_fault_v_o   = store_page_fault_v;
   assign load_page_fault_v_o    = load_page_fault_v;
   assign store_access_fault_v_o = store_access_fault_v;
