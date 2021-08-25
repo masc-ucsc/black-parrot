@@ -554,9 +554,8 @@ module bp_be_dcache
   wire store_miss_tv  = v_tv_r & decode_tv_r.store_op & ~decode_tv_r.sc_op & ~store_hit_tv & ~uncached_op_tv_r & (writethrough_p == 0);
   wire lr_miss_tv     = v_tv_r & decode_tv_r.lr_op & ~store_hit_tv & ~uncached_op_tv_r;
   wire fencei_miss_tv = v_tv_r & decode_tv_r.fencei_op & gdirty_r & (coherent_p == 0);
-  wire engine_miss_tv = v_tv_r & cache_req_v_o & ~cache_req_yumi_i;
 
-  wire any_miss_tv = load_miss_tv | store_miss_tv | lr_miss_tv | fencei_miss_tv | engine_miss_tv;
+  wire any_miss_tv = load_miss_tv | store_miss_tv | lr_miss_tv | fencei_miss_tv;
 
   assign early_data_o = (decode_tv_r.sc_op & ~uncached_op_tv_r)
     ? (sc_success_tv != 1'b1)
@@ -567,6 +566,8 @@ module bp_be_dcache
     & ((uncached_op_tv_r & (decode_tv_r.load_op & uncached_hit_tv_r))
       // Uncached Store
        | (uncached_op_tv_r & decode_tv_r.store_op & ~decode_tv_r.amo_op & cache_req_yumi_i)
+      // Writethrough Store
+       | (decode_tv_r.store_op & ~uncached_op_tv_r & (writethrough_p == 1))
       // Uncached AMO
        | (uncached_op_tv_r & decode_tv_r.amo_op & (decode_tv_r.rd_addr == '0) & cache_req_yumi_i)
       // Fencei
@@ -692,8 +693,7 @@ module bp_be_dcache
   assign wbuf_v_li = v_tv_r
     & decode_tv_r.store_op & ~uncached_op_tv_r
     & store_hit_tv & ~sc_fail_tv
-    & ((writethrough_p == 0) || cache_req_yumi_i)
-    & ~flush_self;
+    & ~flush_i;
 
   //
   // Atomic operations
@@ -833,6 +833,8 @@ module bp_be_dcache
 
   assign cache_req_v_o = is_req
     | (is_ready & v_tv_r & ~flush_i & (|{cached_req, fencei_req, l2_amo_req, uncached_load_req, uncached_store_req, wt_req}));
+
+  assign miss_v_o = v_tv_r & cache_req_v_o & ~nonblocking_req;
 
   always_comb
     begin

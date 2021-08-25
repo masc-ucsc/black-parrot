@@ -2,8 +2,6 @@
 `ifndef BP_COMMON_HOST_PKGDEF_SVH
 `define BP_COMMON_HOST_PKGDEF_SVH
 
-<<<<<<< HEAD
-
   localparam host_base_addr_gp         = (dev_id_width_gp+dev_addr_width_gp)'('h0010_0000);
   localparam host_match_addr_gp        = (dev_id_width_gp+dev_addr_width_gp)'('h001?_????);
 

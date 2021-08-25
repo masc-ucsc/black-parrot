@@ -581,7 +581,7 @@ module bp_uce
                 fsm_cmd_header_lo.msg_type       = e_bedrock_mem_uc_wr;
                 fsm_cmd_header_lo.addr           = cache_req_r.addr;
                 fsm_cmd_header_lo.size           = bp_bedrock_msg_size_e'(cache_req_r.size);
-                fsm_cmd_header_lo.payload.lce_id           = lce_id_i;
+                fsm_cmd_header_lo.payload.lce_id = lce_id_i;
                 fsm_cmd_header_lo.subop          = mem_wr_subop;
                 fsm_cmd_data_lo                  = cache_req_r.data;
                 fsm_cmd_v_lo = ~cache_req_credits_full_o;

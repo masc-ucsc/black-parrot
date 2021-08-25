@@ -326,13 +326,14 @@ module bp_be_pipe_mem
      ,.data_o({is_req_mem2, is_store_mem2, is_fencei_mem2})
      );
 
-  bsg_dff_reset
+  bsg_dff_reset_half
    #(.width_p(3))
    mem3_reg
-    (.clk_i(clk_i)
+    (.clk_i(~clk_i)
      ,.reset_i(reset_i)
      ,.data_i({is_req_mem2, is_store_mem2, is_fencei_mem2})
-     ,.data_o({is_req_mem3, is_store_mem3, is_fencei_mem3})
+     ,.data_half_o({is_req_mem3, is_store_mem3, is_fencei_mem3})
+     ,.data_full_o()
      );
 
   // Check instruction accesses
@@ -361,8 +362,8 @@ module bp_be_pipe_mem
 
   assign tlb_store_miss_v_o     = is_store_mem2 & dtlb_miss_v;
   assign tlb_load_miss_v_o      = ~is_store_mem2 & dtlb_miss_v;
-  assign cache_miss_v_o         = is_req_mem3 & ~dcache_early_hit_v & cache_req_yumi_i;
-  assign cache_fail_v_o         = is_req_mem3 & ~dcache_early_hit_v & ~cache_req_yumi_i;
+  assign cache_miss_v_o         = is_req_mem3 & dcache_early_miss_v;
+  assign cache_fail_v_o         = is_req_mem3 & ~dcache_early_hit_v & ~dcache_early_miss_v;
   assign fencei_clean_v_o       = is_fencei_mem3 & dcache_early_hit_v;
   assign fencei_dirty_v_o       = is_fencei_mem3 & ~dcache_early_hit_v;
 
