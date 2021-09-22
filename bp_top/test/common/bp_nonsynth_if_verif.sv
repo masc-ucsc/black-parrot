@@ -108,7 +108,7 @@ module bp_nonsynth_if_verif
   if (branch_metadata_fwd_width_p != $bits(bp_fe_branch_metadata_fwd_s))
     $fatal("Branch metadata width: %d != width of branch metadata struct: %d", branch_metadata_fwd_width_p, $bits(bp_fe_branch_metadata_fwd_s));
 
-  if ((multicore_p == 1) && ((amo_swap_p != e_none) || (amo_fetch_logic_p != e_none) || (amo_fetch_arithmetic_p != e_none)))
+  if ((multicore_p == 1) && ((amo_swap_p == e_l2) || (amo_fetch_logic_p == e_l2) || (amo_fetch_arithmetic_p == e_l2)))
     $fatal("Error: L2 atomics are not currently supported in bp_multicore");
 
   if (mem_noc_flit_width_p % l2_fill_width_p != 0)

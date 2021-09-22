@@ -499,6 +499,9 @@
       ,l1_coherent   : 1
       ,dcache_fill_width : 512
       ,icache_fill_width : 512
+      ,amo_swap             : e_l1
+      ,amo_fetch_logic      : e_l1
+      ,amo_fetch_arithmetic : e_l1
       ,default : "inv"
       };
   `bp_aviary_derive_cfg(bp_multicore_1_cfg_p
