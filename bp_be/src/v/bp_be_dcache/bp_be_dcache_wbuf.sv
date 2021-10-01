@@ -25,6 +25,7 @@ module bp_be_dcache_wbuf
 
    , input [wbuf_entry_width_lp-1:0]        wbuf_entry_i
    , input                                  v_i
+   , output logic                           ready_and_o
 
    , output logic [wbuf_entry_width_lp-1:0] wbuf_entry_o
    , output logic                           v_o
@@ -46,7 +47,7 @@ module bp_be_dcache_wbuf
     (.clk_i(clk_i)
      ,.reset_i(reset_i)
 
-     ,.up_i(v_i)
+     ,.up_i(v_i & ready_and_o)
      ,.down_i(yumi_i)
      ,.count_o(num_els_r)
      );
@@ -173,6 +174,8 @@ module bp_be_dcache_wbuf
      ,.sel_i(bypass_mask_r)
      ,.data_o(data_merged_o)
      );
+
+  assign ready_and_o = (num_els_r < 2'd2) || yumi_i;
 
   //synopsys translate_off
   always_ff @(negedge clk_i) begin
