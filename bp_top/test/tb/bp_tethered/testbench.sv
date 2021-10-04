@@ -606,7 +606,7 @@ module testbench
                 (.clk_i(clk_i & testbench.cce_trace_en_lo)
                  ,.reset_i(reset_i)
                  ,.cce_id_i(cfg_bus_cast_i.cce_id)
-                 ,.req_start_i('0)
+                 ,.req_start_i(req_start)
                  ,.req_end_i('0)
                  ,.lce_req_header_i(lce_req)
                  ,.cmd_send_i(lce_cmd_header_v_o & lce_cmd_header_ready_and_i)
