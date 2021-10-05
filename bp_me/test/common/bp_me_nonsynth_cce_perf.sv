@@ -138,7 +138,7 @@ module bp_me_nonsynth_cce_perf
   always_ff @(negedge clk_i) begin
     if (~reset_i) begin
       if (req_started_r & req_end_i) begin
-        $fdisplay(file, "%0t,%0d,%0d,%s,%0d", $time, total_cycles, cce_id_i, op, cnt);
+        $fdisplay(file, "%0t,%0d,%0d,%s,%0d", $time, total_cycles, cce_id_i, op, cnt+'d1);
       end
     end // reset
   end // always_ff
