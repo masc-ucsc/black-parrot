@@ -111,7 +111,7 @@ module bp_cce_fsm
   if (counter_max_lp < max_tag_sets_lp) $fatal(0,"Counter max value not large enough");
   if (icache_block_width_p != cce_block_width_p) $fatal(0,"icache block width must match cce block width");
   if (dcache_block_width_p != cce_block_width_p) $fatal(0,"dcache block width must match cce block width");
-  if (acache_block_width_p != cce_block_width_p) $fatal(0,"acache block width must match cce block width");
+  if ((num_cacc_p) > 0 && (acache_block_width_p != cce_block_width_p)) $fatal(0,"acache block width must match cce block width");
   if (dword_width_gp != 64) $fatal(0,"FSM CCE requires dword width of 64-bits");
   if (!(`BSG_IS_POW2(cce_block_width_p) || cce_block_width_p < 64 || cce_block_width_p > 1024))
     $fatal(0, "invalid CCE block width");
