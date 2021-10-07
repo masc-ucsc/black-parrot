@@ -2,11 +2,6 @@ from __future__ import print_function
 import sys
 import random
 import math
-# import trace generator for $
-# Note: this path is relative to bp_me/syn directory
-# it would be nice to simply add the directory that TraceGen source lives in to the path
-# that python will search for files in, then remove the sys.path.append call
-sys.path.append("../software/py/")
 from trace_gen import TraceGen
 from test_memory import TestMemory
 

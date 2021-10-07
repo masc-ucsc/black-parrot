@@ -24,6 +24,8 @@ module testbench
    , parameter lce_tr_trace_p = 0
    , parameter dram_trace_p = 0
 
+   , parameter trace_file_p = "test.tr"
+
    // DRAM parameters
    , parameter dram_type_p                 = BP_DRAM_FLOWVAR // Replaced by the flow with a specific dram_type
 
@@ -37,8 +39,8 @@ module testbench
 
    // LCE Trace Replay Width
    , localparam lce_opcode_width_lp=$bits(bp_me_nonsynth_lce_opcode_e)
-   , localparam tr_ring_width_lp=`bp_me_nonsynth_lce_tr_pkt_width(paddr_width_p, dword_width_gp)
-   , localparam tr_rom_addr_width_p = 20
+   , localparam trace_replay_data_width_lp=`bp_me_nonsynth_lce_tr_pkt_width(paddr_width_p, dword_width_gp)
+   , localparam trace_rom_addr_width_lp = 20
 
    `declare_bp_bedrock_lce_if_widths(paddr_width_p, cce_block_width_p, lce_id_width_p, cce_id_width_p, lce_assoc_p, lce)
    `declare_bp_bedrock_mem_if_widths(paddr_width_p, cce_block_width_p, lce_id_width_p, lce_assoc_p, cce)
@@ -121,10 +123,12 @@ module testbench
 
   // LCE trace replay interface
   logic [num_lce_p-1:0]                       tr_v_li, tr_ready_lo;
-  logic [num_lce_p-1:0][tr_ring_width_lp-1:0] tr_data_li;
+  logic [num_lce_p-1:0][trace_replay_data_width_lp-1:0] tr_data_li;
   logic [num_lce_p-1:0]                       tr_v_lo, tr_yumi_li;
-  logic [num_lce_p-1:0][tr_ring_width_lp-1:0] tr_data_lo;
+  logic [num_lce_p-1:0][trace_replay_data_width_lp-1:0] tr_data_lo;
   logic [num_lce_p-1:0]tr_done_lo;
+  logic [num_lce_p-1:0][trace_rom_addr_width_lp-1:0] trace_rom_addr_lo;
+  logic [num_lce_p-1:0][trace_replay_data_width_lp+3:0] trace_rom_data_li;
 
   // LCE-CCE request interface (from LCE to buffer) - BedRock Lite
   bp_bedrock_lce_req_msg_s  [num_lce_p-1:0] lce_req_lo;
@@ -308,10 +312,10 @@ module testbench
 
   for (genvar i = 0; i < num_lce_p; i++) begin : lce
     // Trace Replay Driver
-    bsg_trace_node_master
-     #(.id_p(i)
-       ,.ring_width_p(tr_ring_width_lp)
-       ,.rom_addr_width_p(tr_rom_addr_width_p)
+    bsg_trace_replay
+     #(.payload_width_p(trace_replay_data_width_lp)
+       ,.rom_addr_width_p(trace_rom_addr_width_lp)
+       ,.debug_p(2)
        )
      trace_replay
       (.clk_i(clk_i)
@@ -326,8 +330,23 @@ module testbench
        ,.yumi_i(tr_yumi_li[i])
        ,.data_o(tr_data_lo[i])
 
+       ,.rom_addr_o(trace_rom_addr_lo[i])
+       ,.rom_data_i(trace_rom_data_li[i])
+
        ,.done_o(tr_done_lo[i])
+       ,.error_o()
        );
+
+    bsg_nonsynth_test_rom
+     #(.data_width_p(trace_replay_data_width_lp+4)
+       ,.addr_width_p(trace_rom_addr_width_lp)
+       ,.filename_p(trace_file_p)
+       )
+     ROM
+      (.addr_i(trace_rom_addr_lo[i])
+       ,.data_o(trace_rom_data_li[i])
+       );
+
 
     // Mock LCE
     bp_me_nonsynth_mock_lce
