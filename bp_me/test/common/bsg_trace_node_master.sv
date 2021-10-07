@@ -42,9 +42,10 @@ module bsg_trace_node_master
   // trace replay
   //
 
-  bsg_fsb_node_trace_replay #(
-    .ring_width_p(ring_width_p)
+  bsg_trace_replay #(
+    .payload_width_p(ring_width_p)
     ,.rom_addr_width_p(rom_addr_width_p)
+    ,.debug_p(2)
   ) trace_replay (
     .clk_i(clk_i)
     ,.reset_i(reset_i)
