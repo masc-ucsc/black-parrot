@@ -1,4 +1,4 @@
-e_bp_multicore_cce_ucode_half_cfg_lces := 1
+e_bp_multicore_half_cce_ucode_cfg_lces := 1
 e_bp_multicore_half_cfg_lces           := 1
 e_bp_unicore_half_cfg_lces             := 1
 
