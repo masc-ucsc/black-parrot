@@ -63,6 +63,18 @@ module bp_nonsynth_cosim
   bp_be_commit_pkt_s commit_pkt;
   assign commit_pkt = commit_pkt_i;
 
+  logic [29:0] commit_cycle_cnt;
+  bsg_counter_clear_up
+   #(.max_val_p(2**30-1), .init_val_p(0))
+   commit_cycle_counter
+    (.clk_i(clk_i)
+     ,.reset_i(reset_i)
+
+     ,.clear_i(1'b0)
+     ,.up_i(1'b1)
+     ,.count_o(commit_cycle_cnt)
+     );
+
   bp_be_decode_s decode_r;
   bsg_dff_chain
    #(.width_p($bits(bp_be_decode_s))
@@ -249,7 +261,7 @@ module bp_nonsynth_cosim
       dromajo_printer();
       if (trace_en_i & commit_fifo_yumi_li & instret_v_r & commit_pc_r != '0)
         begin
-          $fwrite(file, "%x %x %x %x ", mhartid_i, commit_pc_r, commit_instr_r, instr_cnt);
+          $fwrite(file, "%0d %x %x %x %x ", commit_cycle_cnt, mhartid_i, commit_pc_r, commit_instr_r, instr_cnt);
           if (commit_fifo_yumi_li & commit_ird_w_v_r)
             $fwrite(file, "%x %x", commit_instr_r.rd_addr, ird_data_r[commit_instr_r.rd_addr]);
           if (commit_fifo_yumi_li & commit_frd_w_v_r)
