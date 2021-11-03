@@ -104,7 +104,7 @@ extern "C" bool check_terminate() {
 }
 
 extern "C" void dromajo_printer() {
-  if(counter % 1000 == 0)
+  if(counter % 100 == 0)
     cout << "Counter at: " << counter << endl;
   counter++;
 }

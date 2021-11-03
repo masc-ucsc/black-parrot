@@ -245,9 +245,9 @@ module bp_nonsynth_cosim
     end
 
   always_ff @(negedge clk_i)
+    dromajo_printer();
     if (trace_en_i & commit_fifo_yumi_li & instret_v_r & commit_pc_r != '0)
       begin
-        dromajo_printer();
         $fwrite(file, "%x %x %x %x ", mhartid_i, commit_pc_r, commit_instr_r, instr_cnt);
         if (commit_fifo_yumi_li & commit_ird_w_v_r)
           $fwrite(file, "%x %x", commit_instr_r.rd_addr, ird_data_r[commit_instr_r.rd_addr]);
