@@ -61,7 +61,7 @@ endif
 NBF_INPUTS += --addr_width=$(PADDR_WIDTH)
 
 $(SIM_DIR)/prog.nbf: $(SIM_DIR)/cce_ucode.mem $(SIM_DIR)/prog.mem
-	cd $(@D); python $(MEM2NBF) $(NBF_INPUTS) > $@
+	cd $(@D); python3 $(MEM2NBF) $(NBF_INPUTS) > $@
 
 $(SIM_DIR)/bootrom.riscv: $(BP_SDK_PROG_DIR)/bootrom/bootrom.riscv
 	cp $< $@
@@ -97,7 +97,7 @@ $(SIM_DIR)/run_samplesc: $(SAMPLE_COLLATERAL)
 	$(RISCV_OBJCOPY) -O verilog --verilog-data-width=8 $(@D)/bootrom.riscv $(@D)/bootrom.mem
 	$(RISCV_OBJCOPY) -O binary $(@D)/bootrom.riscv $(@D)/bootrom.bin
 	cd $(@D); \
-		python $(MEM2NBF) $(NBF_INPUTS) > prog.nbf
+		python3 $(MEM2NBF) $(NBF_INPUTS) > prog.nbf
 	cd $(@D); \
 		./simsc $(VERILATOR_OPTIONS) $(VERILATOR_PLUSARGS) | tee $(SIM_LOG)
 	-@grep "PASS" $(SIM_LOG) || echo "FAILED" > $(SIM_ERROR)
@@ -113,7 +113,7 @@ $(SIM_DIR)/tire_kick: $(TOUCH_DIR) $(RESULTS_DIR) $(LOG_DIR) $(REPORT_DIR) $(SIM
 	cp $(TB_PATH)/$(TB)/hello_world.mem $(@D)/prog.mem
 	## Stub out cce_ucode and bootrom since they're unused by this example
 	touch $(@D)/cce_ucode.mem $(@D)/bootrom.mem
-	cd $(@D); python $(MEM2NBF) $(NBF_INPUTS) > $(@D)/prog.nbf
+	cd $(@D); python3 $(MEM2NBF) $(NBF_INPUTS) > $(@D)/prog.nbf
 	cd $(@D); ./simsc $(VERILATOR_OPTIONS) $(VERILATOR_PLUSARGS) 2>&1 | tee $(SIM_LOG)
 	-@grep "PASS" $(SIM_LOG) || echo "FAILED" > $(SIM_ERROR)
 	-@grep "STATS" -A 3 $(SIM_LOG) > $(SIM_REPORT)
