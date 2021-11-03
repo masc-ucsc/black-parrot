@@ -11,6 +11,8 @@ dromajo_cosim_state_t* dromajo_pointer;
 vector<bool>* finish;
 char init = 0;
 
+uint64_t counter = 0;
+
 extern "C" void dromajo_init(char* cfg_f_name, int hartid, int ncpus, int memory_size, bool checkpoint, bool amo_en) {
   if (!hartid) {
     if (!init) {
@@ -99,4 +101,10 @@ extern "C" bool check_terminate() {
     if (finish->at(i) == false)
       return false;
   return true;
+}
+
+extern "C" void dromajo_printer() {
+  if(counter % 1000 = 0)
+    cout << "Counter at: " << counter << endl;
+  counter++;
 }
