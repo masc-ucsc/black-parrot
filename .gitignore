@@ -4,6 +4,6 @@ reports/
 DVEfiles/
 *.tr
 *.pyc
-external/
-tools/install/
+external/*
+tools/*
 regress_logs/
