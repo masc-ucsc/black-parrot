@@ -244,17 +244,18 @@ module bp_nonsynth_cosim
       file      = $fopen(file_name, "w");
     end
 
-  always_ff @(negedge clk_i)
-    dromajo_printer();
-    if (trace_en_i & commit_fifo_yumi_li & instret_v_r & commit_pc_r != '0)
-      begin
-        $fwrite(file, "%x %x %x %x ", mhartid_i, commit_pc_r, commit_instr_r, instr_cnt);
-        if (commit_fifo_yumi_li & commit_ird_w_v_r)
-          $fwrite(file, "%x %x", commit_instr_r.rd_addr, ird_data_r[commit_instr_r.rd_addr]);
-        if (commit_fifo_yumi_li & commit_frd_w_v_r)
-          $fwrite(file, "%x %x", commit_instr_r.rd_addr, frd_raw_li[commit_instr_r.rd_addr]);
-        $fwrite(file, "\n");
-      end
-
+  always_ff @(negedge clk_i) 
+    begin
+      dromajo_printer();
+      if (trace_en_i & commit_fifo_yumi_li & instret_v_r & commit_pc_r != '0)
+        begin
+          $fwrite(file, "%x %x %x %x ", mhartid_i, commit_pc_r, commit_instr_r, instr_cnt);
+          if (commit_fifo_yumi_li & commit_ird_w_v_r)
+            $fwrite(file, "%x %x", commit_instr_r.rd_addr, ird_data_r[commit_instr_r.rd_addr]);
+          if (commit_fifo_yumi_li & commit_frd_w_v_r)
+            $fwrite(file, "%x %x", commit_instr_r.rd_addr, frd_raw_li[commit_instr_r.rd_addr]);
+          $fwrite(file, "\n");
+        end
+    end
 endmodule
 
