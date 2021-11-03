@@ -57,6 +57,7 @@ module bp_nonsynth_cosim
 
   import "DPI-C" context function void set_finish(int hartid);
   import "DPI-C" context function bit check_terminate();
+  import "DPI-C" context function void dromajo_printer();
 
   `declare_bp_be_internal_if_structs(vaddr_width_p, paddr_width_p, asid_width_p, branch_metadata_fwd_width_p);
   bp_be_commit_pkt_s commit_pkt;
@@ -246,6 +247,7 @@ module bp_nonsynth_cosim
   always_ff @(negedge clk_i)
     if (trace_en_i & commit_fifo_yumi_li & instret_v_r & commit_pc_r != '0)
       begin
+        dromajo_printer();
         $fwrite(file, "%x %x %x %x ", mhartid_i, commit_pc_r, commit_instr_r, instr_cnt);
         if (commit_fifo_yumi_li & commit_ird_w_v_r)
           $fwrite(file, "%x %x", commit_instr_r.rd_addr, ird_data_r[commit_instr_r.rd_addr]);
