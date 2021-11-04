@@ -42,6 +42,7 @@ int main(int argc, char **argv) {
   svScope g_scope = svGetScopeFromName("testbench");
   svSetScope(g_scope);
 
+  tb->run_num = run_num;
   // Let clock generators register themselves.
   tb->eval();
 

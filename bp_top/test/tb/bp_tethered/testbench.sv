@@ -48,7 +48,8 @@ module testbench
    // Synthesis parameters
    , parameter no_bind_p                   = 0
    )
-  (output bit reset_i);
+  ( input   bit run_num,
+    output  bit reset_i);
 
   import "DPI-C" context function bit get_finish(int hartid);
   export "DPI-C" function get_dram_period;
