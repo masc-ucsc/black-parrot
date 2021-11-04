@@ -263,7 +263,7 @@ module bp_nonsynth_cosim
       dromajo_printer();
       if (trace_en_i & commit_fifo_yumi_li & instret_v_r & commit_pc_r != '0)
         begin
-          $fwrite(file, "%032d %08x %016x %08x %016x ", commit_cycle_cnt, mhartid_i, commit_pc_r, commit_instr_r.opcode, instr_cnt);
+          $fwrite(file, "%010d %08x %016x %08x %016x ", commit_cycle_cnt, mhartid_i, commit_pc_r, commit_instr_r.opcode, instr_cnt);
           if (commit_fifo_yumi_li & commit_ird_w_v_r)
             $fwrite(file, "%08x %016x", commit_instr_r.rd_addr, ird_data_r[commit_instr_r.rd_addr]);
           if (commit_fifo_yumi_li & commit_frd_w_v_r)
