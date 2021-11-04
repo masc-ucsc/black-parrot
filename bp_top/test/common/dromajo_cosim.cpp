@@ -4,20 +4,62 @@
 #include "stdlib.h"
 #include <string>
 #include <vector>
+#include <cstdio>
 
 using namespace std;
 
 dromajo_cosim_state_t* dromajo_pointer;
 vector<bool>* finish;
 char init = 0;
+int run_num = -1;
+FILE* mpdt_reader;
+int read_ite = 0;
 
 uint64_t counter = 0;
 
-extern "C" void dromajo_init(char* cfg_f_name, int hartid, int ncpus, int memory_size, bool checkpoint, bool amo_en) {
+typedef struct reader_t{
+  uint32_t                                cycle;
+  uint32_t                                hartid;
+  uint64_t                                pc;
+  uint32_t                                 opcode;
+  uint64_t                                inst_cnt;
+  uint32_t                                 rd_addr;
+  uint64_t                                data;
+} reader_t;
+
+reader_t reader[10000] = {{0}};
+
+void struct_reader() {
+  if(run_num == 1) {
+    mpdt_reader = fopen("/mada/users/rkjayara/projs/mpdt/tmp/runs/0/commit_0.trace", "r");
+  
+    if(mpdt_reader != NULL) {
+      cout << "READING FROM run0 commit_0.trace FILE" << endl;
+      while(fscanf(mpdt_reader, "%032d %08x %016x %08x %016x %08x %016x\n", &reader[read_ite].cycle, &reader[read_ite].hartid, &reader[read_ite].pc, &reader[read_ite].opcode, &reader[read_ite].inst_cnt, &reader[read_ite].rd_addr, &reader[read_ite].data) != EOF) {
+        printf("cycle: %032d hartid: %08x pc: %016x opcode: %08x inst_cnt: %016x rd_addr: %08x data: %016x\n", reader[read_ite].cycle, reader[read_ite].hartid, reader[read_ite].pc, reader[read_ite].opcode, reader[read_ite].inst_cnt, reader[read_ite].rd_addr, reader[read_ite].data);
+        ++read_ite;
+      }
+      cout << "READ " << read_ite << " LINES IN TOTAL" << endl;
+    }
+    else {
+      cout << "FILE READ ERROR" << endl;
+      cout << "FILE READ ERROR" << endl;
+      cout << "FILE READ ERROR" << endl;
+      cout << "FILE READ ERROR" << endl;
+      cout << "FILE READ ERROR" << endl;
+      exit(1);
+    }
+  }
+}
+
+extern "C" void dromajo_init(char* cfg_f_name, int hartid, int ncpus, int memory_size, bool checkpoint, bool amo_en, int run_num_get) {
   if (!hartid) {
     if (!init) {
       init = 1;
       cout << "Running with Dromajo cosimulation" << endl;
+
+      run_num = run_num_get;
+      struct_reader();
 
       finish = new vector<bool>(ncpus, false);
 
@@ -108,3 +150,4 @@ extern "C" void dromajo_printer() {
     cout << "Counter at: " << counter << endl;
   counter++;
 }
+

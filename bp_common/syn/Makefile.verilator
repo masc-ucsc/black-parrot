@@ -14,7 +14,7 @@ VV ?= $(VERILATOR)
 VERILATOR_THREADS ?= 1
 ## Tool options
 VV_OPTS  = --cc                 # Output in C++
-#VV_OPTS += --debug --gdbbt     # Debugs and produces stack trace
+VV_OPTS += --debug --gdbbt --trace --trace_structs -DVL_DEBUG -g -pg    # Debugs and produces stack trace
 VV_OPTS += -O1
 VV_OPTS += --x-assign fast --x-initial fast
 #VV_OPTS += --threads $(VERILATOR_THREADS)
