@@ -3,7 +3,8 @@
 `include "bp_be_defines.svh"
 `include "bp_common_rv64_pkgdef.svh"
 
-  import "DPI-C" context function void dromajo_init(string cfg_f_name, int hartid, int ncpus, int memory_size, bit checkpoint, bit amo_en, input bit run_num_get);
+  //import "DPI-C" context function void dromajo_init(string cfg_f_name, int hartid, int ncpus, int memory_size, bit checkpoint, bit amo_en, input bit run_num_get);
+  import "DPI-C" context function void dromajo_init(string cfg_f_name, int hartid, int ncpus, int memory_size, bit checkpoint, bit amo_en);  
   import "DPI-C" context function bit  dromajo_step(int hartid,
                                                     longint pc,
                                                     int insn,
@@ -13,7 +14,7 @@
 
   import "DPI-C" context function void set_finish(int hartid);
   import "DPI-C" context function bit check_terminate();
-  import "DPI-C" context function void dromajo_printer();
+  import "DPI-C" context function void dromajo_printer(input bit run_num_get);
 
 module bp_nonsynth_cosim
   import bp_common_pkg::*;
@@ -60,15 +61,15 @@ module bp_nonsynth_cosim
     , input [rv64_reg_addr_width_gp-1:0]      frd_addr_i
     , input [dpath_width_gp-1:0]              frd_data_i
     );
-
+  /*
   initial begin
-    /*if (run_num == 1) begin
+    if (run_num == 1) begin
       $display("PATH TO READ FILE:  /mada/users/rkjayara/projs/mpdt/tmp/runs/0/commit_0.trace");
-    end*/
+    end
     $display("IN NOSYNTH COSIM: RUN NUMBER: %d", run_num);
     $display("IN NOSYNTH COSIM: RUN NUMBER: %d", run_num);
     $display("IN NOSYNTH COSIM: RUN NUMBER: %d", run_num);
-  end
+  end*/
 
   `declare_bp_be_internal_if_structs(vaddr_width_p, paddr_width_p, asid_width_p, branch_metadata_fwd_width_p);
   bp_be_commit_pkt_s commit_pkt;
@@ -232,7 +233,7 @@ module bp_nonsynth_cosim
 
   always_ff @(negedge reset_i)
     if (cosim_en_i)
-      dromajo_init(config_file_i, mhartid_i, num_core_i, memsize_i, checkpoint_i, amo_en_i, run_num);
+      dromajo_init(config_file_i, mhartid_i, num_core_i, memsize_i, checkpoint_i, amo_en_i);
 
   always_ff @(negedge clk_i)
     if (cosim_en_i & commit_fifo_yumi_li & trap_v_r)
@@ -269,7 +270,7 @@ module bp_nonsynth_cosim
 
   always_ff @(negedge clk_i) 
     begin
-      dromajo_printer();
+      dromajo_printer(run_num);
       if (trace_en_i & commit_fifo_yumi_li & instret_v_r & commit_pc_r != '0)
         begin
           $fwrite(file, "%032d %08x %016x %08x %016x ", commit_cycle_cnt, mhartid_i, commit_pc_r, commit_instr_r.opcode, instr_cnt);

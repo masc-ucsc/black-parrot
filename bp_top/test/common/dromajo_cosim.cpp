@@ -53,17 +53,17 @@ void struct_reader() {
   }
 }
 
-extern "C" void dromajo_init(char* cfg_f_name, int hartid, int ncpus, int memory_size, bool checkpoint, bool amo_en, svBit run_num_get) {
+
+//extern "C" void dromajo_init(char* cfg_f_name, int hartid, int ncpus, int memory_size, bool checkpoint, bool amo_en, svBit run_num_get) 
+
+extern "C" void dromajo_init(char* cfg_f_name, int hartid, int ncpus, int memory_size, bool checkpoint, bool amo_en) {
   if (!hartid) {
     if (!init) {
       init = 1;
       cout << "Running with Dromajo cosimulation" << endl;
-
-      if(run_num_get == (svBit)1) {
-        cout << "GOT RUN NUMBER : " << run_num << " !!!!!!!!!!!!!!!!!!!!" << endl;
-        run_num = 1;
-        struct_reader();
-      }
+      
+      if(run_num == 1)
+       struct_reader();
 
       finish = new vector<bool>(ncpus, false);
 
@@ -150,8 +150,22 @@ extern "C" bool check_terminate() {
 }
 
 extern "C" void dromajo_printer() {
-  if(counter % 100 == 0)
-    cout << "Counter at: " << counter << endl;
+  if(counter % 1000 == 0)
+    cout << "RUN: " << run_num << "Counter at: " << counter << endl;
   counter++;
 }
 
+extern "C" void set_run_num(svBit run_num_get) {
+  if(run_num_get == (svBit)1) {
+    run_num = 1;
+    cout << "IN DROMAJO SET RUN NUMBER TO: " << run_num << endl;
+    cout << "IN DROMAJO SET RUN NUMBER TO: " << run_num << endl;
+    cout << "IN DROMAJO SET RUN NUMBER TO: " << run_num << endl;
+  }
+  else {
+    run_num = 0;
+    cout << "IN DROMAJO SET RUN NUMBER TO: " << run_num << endl;
+    cout << "IN DROMAJO SET RUN NUMBER TO: " << run_num << endl;
+    cout << "IN DROMAJO SET RUN NUMBER TO: " << run_num << endl;
+  }
+}

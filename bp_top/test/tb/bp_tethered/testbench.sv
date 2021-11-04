@@ -6,6 +6,8 @@
 
 `include "bsg_noc_links.vh"
 
+import "DPI-C" function  void set_run_num(input bit run_num_get);
+
 `ifndef BP_SIM_CLK_PERIOD
 `define BP_SIM_CLK_PERIOD 10
 `endif
@@ -59,6 +61,7 @@ module testbench
     $display("IN TESTBENCH: RUN NUMBER: %d !!!!!!!!!", run_num);
     $display("IN TESTBENCH: RUN NUMBER: %d !!!!!!!!!", run_num);
     $display("IN TESTBENCH: RUN NUMBER: %d !!!!!!!!!", run_num);
+    set_run_num(run_num);
   end
 
   function int get_dram_period();
@@ -310,7 +313,7 @@ module testbench
           (.clk_i(clk_i)
            ,.reset_i(reset_i)
            ,.freeze_i(calculator.pipe_sys.csr.cfg_bus_cast_i.freeze)
-           ,.run_num(run_num)
+           ,.run_num(run_num2)
 
            // We want to pass these values as parameters, but cannot in Verilator 4.025
            // Parameter-resolved constants must not use dotted references
