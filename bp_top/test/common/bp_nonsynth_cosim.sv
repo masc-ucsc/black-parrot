@@ -60,15 +60,6 @@ module bp_nonsynth_cosim
     , input [rv64_reg_addr_width_gp-1:0]      frd_addr_i
     , input [dpath_width_gp-1:0]              frd_data_i
     );
-  /*
-  initial begin
-    if (run_num == 1) begin
-      $display("PATH TO READ FILE:  /mada/users/rkjayara/projs/mpdt/tmp/runs/0/commit_0.trace");
-    end
-    $display("IN NOSYNTH COSIM: RUN NUMBER: %d", run_num);
-    $display("IN NOSYNTH COSIM: RUN NUMBER: %d", run_num);
-    $display("IN NOSYNTH COSIM: RUN NUMBER: %d", run_num);
-  end*/
 
   `declare_bp_be_internal_if_structs(vaddr_width_p, paddr_width_p, asid_width_p, branch_metadata_fwd_width_p);
   bp_be_commit_pkt_s commit_pkt;
@@ -269,7 +260,7 @@ module bp_nonsynth_cosim
 
   always_ff @(negedge clk_i) 
     begin
-      dromajo_printer(run_num);
+      dromajo_printer();
       if (trace_en_i & commit_fifo_yumi_li & instret_v_r & commit_pc_r != '0)
         begin
           $fwrite(file, "%032d %08x %016x %08x %016x ", commit_cycle_cnt, mhartid_i, commit_pc_r, commit_instr_r.opcode, instr_cnt);
