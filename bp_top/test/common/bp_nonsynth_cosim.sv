@@ -34,7 +34,6 @@ module bp_nonsynth_cosim
     , input                                   cosim_en_i
     , input                                   trace_en_i
     , input                                   amo_en_i
-    , input bit                               run_num
 
     , input                                   checkpoint_i
     , input [31:0]                            num_core_i

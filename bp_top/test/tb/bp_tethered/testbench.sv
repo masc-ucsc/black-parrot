@@ -313,7 +313,6 @@ module testbench
           (.clk_i(clk_i)
            ,.reset_i(reset_i)
            ,.freeze_i(calculator.pipe_sys.csr.cfg_bus_cast_i.freeze)
-           ,.run_num(run_num2)
 
            // We want to pass these values as parameters, but cannot in Verilator 4.025
            // Parameter-resolved constants must not use dotted references

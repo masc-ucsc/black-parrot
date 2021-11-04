@@ -12,12 +12,12 @@ dromajo_cosim_state_t* dromajo_pointer;
 vector<bool>* finish;
 char init = 0;
 int run_num = -1;
-FILE* mpdt_reader;
-int read_ite = 0;
+FILE* mpdt_c_reader, mpdt_s_reader;
+int c_read_ite = 0, s_read_ite = 0;
 
 uint64_t counter = 0;
 
-typedef struct reader_t{
+typedef struct commit_reader_t {
   uint32_t                                cycle;
   uint32_t                                hartid;
   uint64_t                                pc;
@@ -25,29 +25,56 @@ typedef struct reader_t{
   uint64_t                                inst_cnt;
   uint32_t                                rd_addr;
   uint64_t                                data;
-} reader_t;
+};
 
-reader_t reader[10000] = {{0}};
+typedef struct stall_reader_t {
+  uint32_t                                cycle;
+  uint16_t                                x;
+  uint16_t                                y;
+  uint64_t                                pc;
+  string                                  operation;
+};
+
+commit_reader_t c_reader[10000] = {{0}};
+stall_reader_t  s_reader[10000] = {{0}};
 
 void struct_reader() {
   if(run_num == 1) {
     cout << "READING FILE START !!!!!!!!!!!!!!" <<  endl;
-    mpdt_reader = fopen("/mada/users/rkjayara/projs/mpdt/tmp/runs/0/commit_0.trace", "r");
-  
-    if(mpdt_reader != NULL) {
+
+    mpdt_c_reader = fopen("/mada/users/rkjayara/projs/mpdt/tmp/runs/0/commit_0.trace", "r");
+    if(mpdt_c_reader != NULL) {
       cout << "READING FROM run0 commit_0.trace FILE" << endl;
-      while(fscanf(mpdt_reader, "%032d %08x %016x %08x %016x %08x %016x\n", &reader[read_ite].cycle, &reader[read_ite].hartid, &reader[read_ite].pc, &reader[read_ite].opcode, &reader[read_ite].inst_cnt, &reader[read_ite].rd_addr, &reader[read_ite].data) != EOF) {
-        printf("cycle: %032d hartid: %08x pc: %016x opcode: %08x inst_cnt: %016x rd_addr: %08x data: %016x\n", reader[read_ite].cycle, reader[read_ite].hartid, reader[read_ite].pc, reader[read_ite].opcode, reader[read_ite].inst_cnt, reader[read_ite].rd_addr, reader[read_ite].data);
-        ++read_ite;
+      while(fscanf(mpdt_c_reader, "%032d %08x %016x %08x %016x %08x %016x\n", &reader[c_read_ite].cycle, &reader[c_read_ite].hartid, &reader[c_read_ite].pc, &reader[c_read_ite].opcode, &reader[c_read_ite].inst_cnt, &reader[c_read_ite].rd_addr, &reader[c_read_ite].data) != EOF) {
+        //printf("cycle: %032d hartid: %08x pc: %016x opcode: %08x inst_cnt: %016x rd_addr: %08x data: %016x\n", reader[c_read_ite].cycle, reader[c_read_ite].hartid, reader[c_read_ite].pc, reader[c_read_ite].opcode, reader[c_read_ite].inst_cnt, reader[c_read_ite].rd_addr, reader[c_read_ite].data);
+        ++c_read_ite;
       }
-      cout << "READ " << read_ite << " LINES IN TOTAL" << endl;
+      cout << "READ " << c_read_ite << " LINES IN TOTAL FOR COMMIT" << endl;
     }
     else {
-      cout << "FILE READ ERROR" << endl;
-      cout << "FILE READ ERROR" << endl;
-      cout << "FILE READ ERROR" << endl;
-      cout << "FILE READ ERROR" << endl;
-      cout << "FILE READ ERROR" << endl;
+      cout << "COMMIT FILE READ ERROR" << endl;
+      cout << "COMMIT FILE READ ERROR" << endl;
+      cout << "COMMIT FILE READ ERROR" << endl;
+      cout << "COMMIT FILE READ ERROR" << endl;
+      cout << "COMMIT FILE READ ERROR" << endl;
+      exit(1);
+    }
+
+    mpdt_s_reader = fopen("/mada/users/rkjayara/projs/mpdt/tmp/runs/0/stall_0.trace", "r");
+    if(mpdt_s_reader !=NULL) {
+      cout << "READING FROM run0 stall_0.trace FILE" << endl;
+      while(fscanf(mpdt_s_reader, "%032d,%04x,%04x,%016x,%s\n", &s_reader[s_read_ite].cycle, &s_reader[s_read_ite].x, &s_reader[s_read_ite].y, &s_reader[s_read_ite].pc, &s_reader[s_read_ite].operation) != EOF) {
+        printf("cycle: %032d x: %04x y: %04x pc: %016x operation: %s", s_reader[s_read_ite].cycle, s_reader[s_read_ite].x, s_reader[s_read_ite].y, s_reader[s_read_ite].pc, s_reader[s_read_ite].operation);
+        ++s_read_ite;
+      }
+      cout << "READ " << s_read_ite << " LINES IN TOTAL FOR STALL" << endl;
+    }
+    else {
+      cout << "STALL FILE READ ERROR" << endl;
+      cout << "STALL FILE READ ERROR" << endl;
+      cout << "STALL FILE READ ERROR" << endl;
+      cout << "STALL FILE READ ERROR" << endl;
+      cout << "STALL FILE READ ERROR" << endl;
       exit(1);
     }
   }
@@ -151,7 +178,7 @@ extern "C" bool check_terminate() {
 
 extern "C" void dromajo_printer() {
   if(counter % 1000 == 0)
-    cout << "RUN: " << run_num << "Counter at: " << counter << endl;
+    cout << "RUN: " << run_num << " Counter at: " << counter << endl;
   counter++;
 }
 
