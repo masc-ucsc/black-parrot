@@ -28,10 +28,13 @@ int main(int argc, char **argv) {
     }
   }
 
-/*
-  if(run_num != -1)
-    std::cout << "AAAAAAHHHHHH IT WORKS!!!!!!!!!!!!! GOT RUN NUM: " << run_num << std::endl;
-*/
+
+  if(run_num != -1) {
+    std::cout << "IN TB.CPP: GOT RUN NUM: " << run_num << std::endl;
+    std::cout << "IN TB.CPP: GOT RUN NUM: " << run_num << std::endl;
+    std::cout << "IN TB.CPP: GOT RUN NUM: " << run_num << std::endl;
+  }
+
 
   Verilated::commandArgs(argc, argv);
   Verilated::traceEverOn(VM_TRACE_FST);

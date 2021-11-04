@@ -55,6 +55,12 @@ module testbench
   export "DPI-C" function get_dram_period;
   export "DPI-C" function get_sim_period;
 
+  initial begin
+    $display("IN TESTBENCH: RUN NUMBER: %d !!!!!!!!!", run_num);
+    $display("IN TESTBENCH: RUN NUMBER: %d !!!!!!!!!", run_num);
+    $display("IN TESTBENCH: RUN NUMBER: %d !!!!!!!!!", run_num);
+  end
+
   function int get_dram_period();
     return (`dram_pkg::tck_ps);
   endfunction

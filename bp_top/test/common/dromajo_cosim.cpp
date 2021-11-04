@@ -21,9 +21,9 @@ typedef struct reader_t{
   uint32_t                                cycle;
   uint32_t                                hartid;
   uint64_t                                pc;
-  uint32_t                                 opcode;
+  uint32_t                                opcode;
   uint64_t                                inst_cnt;
-  uint32_t                                 rd_addr;
+  uint32_t                                rd_addr;
   uint64_t                                data;
 } reader_t;
 
@@ -31,6 +31,7 @@ reader_t reader[10000] = {{0}};
 
 void struct_reader() {
   if(run_num == 1) {
+    cout << "READING FILE START !!!!!!!!!!!!!!" <<  endl;
     mpdt_reader = fopen("/mada/users/rkjayara/projs/mpdt/tmp/runs/0/commit_0.trace", "r");
   
     if(mpdt_reader != NULL) {
@@ -59,6 +60,7 @@ extern "C" void dromajo_init(char* cfg_f_name, int hartid, int ncpus, int memory
       cout << "Running with Dromajo cosimulation" << endl;
 
       run_num = run_num_get;
+      cout << "GOT RUN NUMBER : " << run_num << " !!!!!!!!!!!!!!!!!!!!" << endl;
       struct_reader();
 
       finish = new vector<bool>(ncpus, false);

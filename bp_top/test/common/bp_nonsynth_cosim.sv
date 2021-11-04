@@ -49,7 +49,7 @@ module bp_nonsynth_cosim
     , input [dpath_width_gp-1:0]              frd_data_i
     );
 
-  import "DPI-C" context function void dromajo_init(string cfg_f_name, int hartid, int ncpus, int memory_size, bit checkpoint, bit amo_en, bit run_num);
+  import "DPI-C" context function void dromajo_init(string cfg_f_name, int hartid, int ncpus, int memory_size, bit checkpoint, bit amo_en, int run_num);
   import "DPI-C" context function bit  dromajo_step(int hartid,
                                                     longint pc,
                                                     int insn,
@@ -60,13 +60,16 @@ module bp_nonsynth_cosim
   import "DPI-C" context function void set_finish(int hartid);
   import "DPI-C" context function bit check_terminate();
   import "DPI-C" context function void dromajo_printer();
-/*
+
   initial begin
-    if (run_num == 1) begin
+    /*if (run_num == 1) begin
       $display("PATH TO READ FILE:  /mada/users/rkjayara/projs/mpdt/tmp/runs/0/commit_0.trace");
-    end
+    end*/
+    $display("IN NOSYNTH COSIM: RUN NUMBER: %d", run_num);
+    $display("IN NOSYNTH COSIM: RUN NUMBER: %d", run_num);
+    $display("IN NOSYNTH COSIM: RUN NUMBER: %d", run_num);
   end
-*/
+
   `declare_bp_be_internal_if_structs(vaddr_width_p, paddr_width_p, asid_width_p, branch_metadata_fwd_width_p);
   bp_be_commit_pkt_s commit_pkt;
   assign commit_pkt = commit_pkt_i;
