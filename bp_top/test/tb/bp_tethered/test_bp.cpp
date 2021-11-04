@@ -7,7 +7,32 @@
 #include "bsg_nonsynth_dpi_clock_gen.hpp"
 using namespace bsg_nonsynth_dpi;
 
+#include <getopt.h>
+#include <string>
+using namespace std;
+
 int main(int argc, char **argv) {
+
+  int run_num       = -1;
+  int mpdt_verbose  = 0;
+
+  while(1) {
+    static struct option long_options[] = {
+      {"run-Num",       required_argument,  0,  'N'}
+    };
+    int option_index;
+    int c = getopt_long(argc, argv, "-chpm:N:", long_options, &option_index);
+    if (c == -1) break;
+    switch (c) {
+      case 'N': run_num = atoi(optarg);     break;
+    }
+  }
+
+/*
+  if(run_num != -1)
+    std::cout << "AAAAAAHHHHHH IT WORKS!!!!!!!!!!!!! GOT RUN NUM: " << run_num << std::endl;
+*/
+
   Verilated::commandArgs(argc, argv);
   Verilated::traceEverOn(VM_TRACE_FST);
   Verilated::assertOn(false);

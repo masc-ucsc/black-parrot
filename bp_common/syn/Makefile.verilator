@@ -17,7 +17,7 @@ VV_OPTS  = --cc                 # Output in C++
 #VV_OPTS += --debug --gdbbt     # Debugs and produces stack trace
 VV_OPTS += -O1
 VV_OPTS += --x-assign fast --x-initial fast
-VV_OPTS += --threads $(VERILATOR_THREADS)
+#VV_OPTS += --threads $(VERILATOR_THREADS)
 VV_OPTS += --top-module testbench
 VV_OPTS += -f flist.vcs
 VV_OPTS += config.vlt
@@ -37,7 +37,7 @@ BUILD_OPTS += -CFLAGS "-I$(BP_TOOLS_DIR)/install/include -I$(BP_EXTERNAL_DIR)/ba
 
 VERILATOR_OPTIONS =
 
-VERILATOR_PLUSARGS =
+VERILATOR_PLUSARGS = -N$(RN)
 
 LINT_DIR  := $(RESULTS_DIR)/$(TB).$(CFG).$(TAG).lint
 BUILD_DIR := $(RESULTS_DIR)/$(TB).$(CFG).$(TAG).build
