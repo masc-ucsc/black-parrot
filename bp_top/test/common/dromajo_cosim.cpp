@@ -53,15 +53,17 @@ void struct_reader() {
   }
 }
 
-extern "C" void dromajo_init(char* cfg_f_name, int hartid, int ncpus, int memory_size, bool checkpoint, bool amo_en, int run_num_get) {
+extern "C" void dromajo_init(char* cfg_f_name, int hartid, int ncpus, int memory_size, bool checkpoint, bool amo_en, svBit run_num_get) {
   if (!hartid) {
     if (!init) {
       init = 1;
       cout << "Running with Dromajo cosimulation" << endl;
 
-      run_num = run_num_get;
-      cout << "GOT RUN NUMBER : " << run_num << " !!!!!!!!!!!!!!!!!!!!" << endl;
-      struct_reader();
+      if(run_num_get == (svBit)1) {
+        cout << "GOT RUN NUMBER : " << run_num << " !!!!!!!!!!!!!!!!!!!!" << endl;
+        run_num = 1;
+        struct_reader();
+      }
 
       finish = new vector<bool>(ncpus, false);
 

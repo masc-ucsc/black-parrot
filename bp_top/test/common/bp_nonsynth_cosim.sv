@@ -3,6 +3,18 @@
 `include "bp_be_defines.svh"
 `include "bp_common_rv64_pkgdef.svh"
 
+  import "DPI-C" context function void dromajo_init(string cfg_f_name, int hartid, int ncpus, int memory_size, bit checkpoint, bit amo_en, input bit run_num_get);
+  import "DPI-C" context function bit  dromajo_step(int hartid,
+                                                    longint pc,
+                                                    int insn,
+                                                    longint wdata,
+                                                    longint mstatus);
+  import "DPI-C" context function void dromajo_trap(int hartid, longint cause);
+
+  import "DPI-C" context function void set_finish(int hartid);
+  import "DPI-C" context function bit check_terminate();
+  import "DPI-C" context function void dromajo_printer();
+
 module bp_nonsynth_cosim
   import bp_common_pkg::*;
   import bp_be_pkg::*;
@@ -48,18 +60,6 @@ module bp_nonsynth_cosim
     , input [rv64_reg_addr_width_gp-1:0]      frd_addr_i
     , input [dpath_width_gp-1:0]              frd_data_i
     );
-
-  import "DPI-C" context function void dromajo_init(string cfg_f_name, int hartid, int ncpus, int memory_size, bit checkpoint, bit amo_en, int run_num);
-  import "DPI-C" context function bit  dromajo_step(int hartid,
-                                                    longint pc,
-                                                    int insn,
-                                                    longint wdata,
-                                                    longint mstatus);
-  import "DPI-C" context function void dromajo_trap(int hartid, longint cause);
-
-  import "DPI-C" context function void set_finish(int hartid);
-  import "DPI-C" context function bit check_terminate();
-  import "DPI-C" context function void dromajo_printer();
 
   initial begin
     /*if (run_num == 1) begin
