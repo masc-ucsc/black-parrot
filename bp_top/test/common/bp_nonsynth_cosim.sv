@@ -14,7 +14,7 @@
 
   import "DPI-C" context function void set_finish(int hartid);
   import "DPI-C" context function bit check_terminate();
-  import "DPI-C" context function void dromajo_printer(input bit run_num_get);
+  import "DPI-C" context function void dromajo_printer();
 
 module bp_nonsynth_cosim
   import bp_common_pkg::*;
