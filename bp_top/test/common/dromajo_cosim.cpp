@@ -12,7 +12,8 @@ dromajo_cosim_state_t* dromajo_pointer;
 vector<bool>* finish;
 char init = 0;
 int run_num = -1;
-FILE* mpdt_c_reader, mpdt_s_reader;
+FILE* mpdt_c_reader;
+FILE* mpdt_s_reader;
 int c_read_ite = 0, s_read_ite = 0;
 
 uint64_t counter = 0;
@@ -25,7 +26,7 @@ typedef struct commit_reader_t {
   uint64_t                                inst_cnt;
   uint32_t                                rd_addr;
   uint64_t                                data;
-};
+}commit_reader_t;
 
 typedef struct stall_reader_t {
   uint32_t                                cycle;
@@ -33,7 +34,7 @@ typedef struct stall_reader_t {
   uint16_t                                y;
   uint64_t                                pc;
   string                                  operation;
-};
+}stall_reader_t;
 
 commit_reader_t c_reader[10000] = {{0}};
 stall_reader_t  s_reader[10000] = {{0}};
@@ -45,8 +46,8 @@ void struct_reader() {
     mpdt_c_reader = fopen("/mada/users/rkjayara/projs/mpdt/tmp/runs/0/commit_0.trace", "r");
     if(mpdt_c_reader != NULL) {
       cout << "READING FROM run0 commit_0.trace FILE" << endl;
-      while(fscanf(mpdt_c_reader, "%032d %08x %016x %08x %016x %08x %016x\n", &reader[c_read_ite].cycle, &reader[c_read_ite].hartid, &reader[c_read_ite].pc, &reader[c_read_ite].opcode, &reader[c_read_ite].inst_cnt, &reader[c_read_ite].rd_addr, &reader[c_read_ite].data) != EOF) {
-        //printf("cycle: %032d hartid: %08x pc: %016x opcode: %08x inst_cnt: %016x rd_addr: %08x data: %016x\n", reader[c_read_ite].cycle, reader[c_read_ite].hartid, reader[c_read_ite].pc, reader[c_read_ite].opcode, reader[c_read_ite].inst_cnt, reader[c_read_ite].rd_addr, reader[c_read_ite].data);
+      while(fscanf(mpdt_c_reader, "%032d %08x %016x %08x %016x %08x %016x\n", &c_reader[c_read_ite].cycle, &c_reader[c_read_ite].hartid, &c_reader[c_read_ite].pc, &c_reader[c_read_ite].opcode, &c_reader[c_read_ite].inst_cnt, &c_reader[c_read_ite].rd_addr, &c_reader[c_read_ite].data) != EOF) {
+        //printf("cycle: %032d hartid: %08x pc: %016x opcode: %08x inst_cnt: %016x rd_addr: %08x data: %016x\n", c_reader[c_read_ite].cycle, c_reader[c_read_ite].hartid, c_reader[c_read_ite].pc, c_reader[c_read_ite].opcode, c_reader[c_read_ite].inst_cnt, c_reader[c_read_ite].rd_addr, c_reader[c_read_ite].data);
         ++c_read_ite;
       }
       cout << "READ " << c_read_ite << " LINES IN TOTAL FOR COMMIT" << endl;
