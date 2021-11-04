@@ -274,15 +274,16 @@ module bp_nonsynth_core_profiler
       $fwrite(file, "%s,%s,%s,%s,%s\n", "cycle", "x", "y", "pc", "operation");
     end
 
-  wire x_cord_li = '0;
-  wire y_cord_li = '0;
+  wire x_cord_li  = '0;
+  wire y_cord_li  = '0;
+  logic inst      = 5'd24;
 
   always_ff @(negedge clk_i)
     begin
       if (~reset_i & ~freeze_i & commit_pkt_r.instret)
-        $fwrite(file, "%010d,%04x,%04x,%016x,%s", cycle_cnt, x_cord_li, y_cord_li, commit_pkt_r.pc, "instr");
+        $fwrite(file, "%010d,%04x,%04x,%016x,%02d", cycle_cnt, x_cord_li, y_cord_li, commit_pkt_r.pc, inst);
       else if (~reset_i & ~freeze_i)
-        $fwrite(file, "%010d,%04x,%04x,%016x,%s", cycle_cnt, x_cord_li, y_cord_li, commit_pkt_r.pc, stall_reason_enum.name());
+        $fwrite(file, "%010d,%04x,%04x,%016x,%02d", cycle_cnt, x_cord_li, y_cord_li, commit_pkt_r.pc, stall_reason_enum);
 
       if (~reset_i & ~freeze_i)
         $fwrite(file, "\n");
