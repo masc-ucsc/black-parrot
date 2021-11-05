@@ -14,6 +14,7 @@ char init = 0;
 int run_num = -1;
 FILE* mpdt_c_reader;
 FILE* mpdt_s_reader;
+FILE* pc_d;
 int c_read_ite = 0, s_read_ite = 0;
 
 uint64_t counter = 0;
@@ -33,11 +34,12 @@ typedef struct stall_reader_t {
   uint16_t                                x;
   uint16_t                                y;
   uint64_t                                pc;
-  string                                  operation;
+  uint16_t                                operation;
 }stall_reader_t;
 
 commit_reader_t c_reader[10000] = {{0}};
 stall_reader_t  s_reader[10000] = {{0}};
+uint32_t d_cycle_cnt;
 
 void struct_reader() {
   if(run_num == 1) {
@@ -64,8 +66,8 @@ void struct_reader() {
     mpdt_s_reader = fopen("/mada/users/rkjayara/projs/mpdt/tmp/runs/0/stall_0.trace", "r");
     if(mpdt_s_reader !=NULL) {
       cout << "READING FROM run0 stall_0.trace FILE" << endl;
-      while(fscanf(mpdt_s_reader, "%010d,%04x,%04x,%016x,%s\n", &s_reader[s_read_ite].cycle, &s_reader[s_read_ite].x, &s_reader[s_read_ite].y, &s_reader[s_read_ite].pc, &s_reader[s_read_ite].operation) != EOF) {
-        printf("cycle: %010d x: %04x y: %04x pc: %016x operation: %s", s_reader[s_read_ite].cycle, s_reader[s_read_ite].x, s_reader[s_read_ite].y, s_reader[s_read_ite].pc, s_reader[s_read_ite].operation);
+      while(fscanf(mpdt_s_reader, "%010d,%04x,%04x,%016x,%04d\n", &s_reader[s_read_ite].cycle, &s_reader[s_read_ite].x, &s_reader[s_read_ite].y, &s_reader[s_read_ite].pc, &s_reader[s_read_ite].operation) != EOF) {
+        printf("cycle: %010d x: %04x y: %04x pc: %016x operation: %04d", s_reader[s_read_ite].cycle, s_reader[s_read_ite].x, s_reader[s_read_ite].y, s_reader[s_read_ite].pc, s_reader[s_read_ite].operation);
         ++s_read_ite;
       }
       cout << "READ " << s_read_ite << " LINES IN TOTAL FOR STALL" << endl;
@@ -89,7 +91,7 @@ extern "C" void dromajo_init(char* cfg_f_name, int hartid, int ncpus, int memory
     if (!init) {
       init = 1;
       cout << "Running with Dromajo cosimulation" << endl;
-      
+      pc_d = fopen("pc_dump.txt", "w");
       if(run_num == 1)
        struct_reader();
 
@@ -196,4 +198,18 @@ extern "C" void set_run_num(svBit run_num_get) {
     cout << "IN DROMAJO SET RUN NUMBER TO: " << run_num << endl;
     cout << "IN DROMAJO SET RUN NUMBER TO: " << run_num << endl;
   }
+}
+
+extern "C" void get_cycle(const svBitVecVal* cycle_cnt) {
+  //int bcyc    = (int) bit_cycle_cnt;
+  //double cyc  = (double) cycle_cnt;
+  //if (bcyc %  == 0) 
+    //cout << "BIT CYCLE: " << *bcyc << " CYCLE: " << *cyc << endl;
+  d_cycle_cnt = (uint32_t)*cycle_cnt;
+  //printf("BIT CYCLE: %ld LOGIC CYCLE: %ld \n", d_cycle_cnt, *cycle_cnt);
+}
+
+extern "C" void pc_dumper(const svBitVecVal* pc) {
+  if(init == 1)
+    fprintf(pc_d, "%d %x\n", d_cycle_cnt, (uint64_t)*pc);  
 }

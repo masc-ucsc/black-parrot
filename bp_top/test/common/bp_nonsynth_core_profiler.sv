@@ -55,6 +55,8 @@
     ,unknown             = 5'd0
   } bp_stall_reason_e;
 
+  import "DPI-C" function void get_cycle(input bit[29:0] cycle_cnt);
+
 // The BlackParrot core pipeline is a mostly non-stalling pipeline, decoupled between the front-end
 // and back-end.
 `include "bp_common_defines.svh"
@@ -159,6 +161,7 @@ module bp_nonsynth_core_profiler
      );
 
   logic [29:0] cycle_cnt;
+  bit   [29:0] bit_cycle_cnt;
   bsg_counter_clear_up
    #(.max_val_p(2**30-1), .init_val_p(0))
    cycle_counter
@@ -264,15 +267,22 @@ module bp_nonsynth_core_profiler
     if (~reset_i & ~freeze_i & ~commit_pkt_r.instret)
       stall_hist[stall_reason_enum] <= stall_hist[stall_reason_enum] + 1'b1;
 
-  integer file;
-  string file_name;
+  integer file, file2;
+  string file_name, file_name_tmp;
   wire reset_li = reset_i | freeze_i;
   always_ff @(negedge reset_li)
     begin
       file_name = $sformatf("%s_%x.trace", stall_trace_file_p, mhartid_i);
+      file_name_tmp = $sformatf("%s_%x.trace_o", stall_trace_file_p, mhartid_i);
       file      = $fopen(file_name, "w");
-      $fwrite(file, "%s,%s,%s,%s,%s\n", "cycle", "x", "y", "pc", "operation");
+      file2     = $fopen(file_name_tmp, "w");
+      //$fwrite(file, "%s,%s,%s,%s,%s\n", "cycle", "x", "y", "pc", "operation");
     end
+
+  always_ff @(posedge clk_i) begin
+    bit_cycle_cnt = cycle_cnt;
+    get_cycle(bit_cycle_cnt);
+  end
 
   wire x_cord_li  = '0;
   wire y_cord_li  = '0;
@@ -280,13 +290,18 @@ module bp_nonsynth_core_profiler
 
   always_ff @(negedge clk_i)
     begin
-      if (~reset_i & ~freeze_i & commit_pkt_r.instret)
-        $fwrite(file, "%010d,%04x,%04x,%016x,%02d", cycle_cnt, x_cord_li, y_cord_li, commit_pkt_r.pc, inst);
-      else if (~reset_i & ~freeze_i)
-        $fwrite(file, "%010d,%04x,%04x,%016x,%02d", cycle_cnt, x_cord_li, y_cord_li, commit_pkt_r.pc, stall_reason_enum);
-
-      if (~reset_i & ~freeze_i)
+      if (~reset_i & ~freeze_i & commit_pkt_r.instret) begin
+        $fwrite(file, "%010d,%04x,%04x,%016x,%04d", cycle_cnt, x_cord_li, y_cord_li, commit_pkt_r.pc, inst);
+        $fwrite(file2, "%010d,%04x,%04x,%016x,%s", cycle_cnt, x_cord_li, y_cord_li, commit_pkt_r.pc, "instr");
+      end
+      else if (~reset_i & ~freeze_i) begin
+        $fwrite(file, "%010d,%04x,%04x,%016x,%04d", cycle_cnt, x_cord_li, y_cord_li, commit_pkt_r.pc, stall_reason_enum);
+        $fwrite(file2, "%010d,%04x,%04x,%016x,%s", cycle_cnt, x_cord_li, y_cord_li, commit_pkt_r.pc, stall_reason_enum.name());
+      end
+      if (~reset_i & ~freeze_i) begin
         $fwrite(file, "\n");
+        $fwrite(file2, "\n");
+      end
     end
 
   `ifndef VERILATOR
