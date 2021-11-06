@@ -74,7 +74,8 @@ $(BUILD_DIR)/obj_dir: | $(VBUILD_COLLATERAL)
 	-@tail -n 3 $(VBUILD_LOG) > $(VBUILD_REPORT)
 	-@test -s $(VBUILD_ERROR) && echo "FAILED" >> $(VBUILD_REPORT) || rm $(VBUILD_ERROR)
 
-build_dump.sc: VV_OPTS += --trace-fst
+#build_dump.sc: VV_OPTS += --trace-fst
+build_dump.sc: VV_OPTS += --trace
 build_dump.sc: VV_OPTS += --trace-structs
 build_dump.sc: VV_OPTS += --trace-depth 15
 build_dump.sc: build.sc
@@ -94,7 +95,8 @@ $(SIM_DIR)/run_simsc: | $(SIM_COLLATERAL)
 	-@grep "PASS" $(SIM_LOG) || echo "FAILED" > $(SIM_ERROR)
 	-@grep "STATS" -A 3 $(SIM_LOG) > $(SIM_REPORT)
 
-sim_dump.sc: VV_OPTS += --trace-fst
+#sim_dump.sc: VV_OPTS += --trace-fst
+sim_dump.sc: VV_OPTS += --trace
 sim_dump.sc: VV_OPTS += --trace-structs
 sim_dump.sc: VV_OPTS += --trace-depth 15
 sim_dump.sc: sim.sc

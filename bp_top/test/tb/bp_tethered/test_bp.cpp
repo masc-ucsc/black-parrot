@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <verilated_fst_c.h>
 #include <verilated_cov.h>
+#include "verilated_vcd_c.h"
 
 #include "Vtestbench.h"
 #include "Vtestbench__Dpi.h"
@@ -9,6 +10,8 @@ using namespace bsg_nonsynth_dpi;
 
 #include <getopt.h>
 #include <string>
+#include <cstdlib>
+#include <cstdio>
 using namespace std;
 
 int main(int argc, char **argv) {
@@ -51,6 +54,13 @@ int main(int argc, char **argv) {
 
   // Use me to find the correct scope of your DPI functions
   //Verilated::scopesDump();
+#if VM_TRACE
+  Verilated::traceEverOn(true);
+  VerilatedVcdC* tfp = new VerilatedVcdC;
+  tb->trace(tfp, 99);
+  tfp->open("vcd.vcd");
+#endif
+
 
 #if VM_TRACE_FST
   std::cout << "Opening dump file" << std::endl;
@@ -65,6 +75,9 @@ int main(int argc, char **argv) {
     #if VM_TRACE_FST
       wf->dump(sc_time_stamp());
     #endif
+    #if VM_TRACE
+      tfp->dump(sc_time_stamp());
+    #endif
   }
 
   Verilated::assertOn(true);
@@ -74,6 +87,9 @@ int main(int argc, char **argv) {
     tb->eval();
     #if VM_TRACE_FST
       wf->dump(sc_time_stamp());
+    #endif
+    #if VM_TRACE
+      tfp->dump(sc_time_stamp());
     #endif
   }
   std::cout << "Finishing test" << std::endl;
@@ -85,6 +101,10 @@ int main(int argc, char **argv) {
 
   std::cout << "Executing final" << std::endl;
   tb->final();
+
+#if VM_TRACE
+  tfp->close();
+#endif
 
   #if VM_TRACE_FST
     std::cout << "Closing dump file" << std::endl;

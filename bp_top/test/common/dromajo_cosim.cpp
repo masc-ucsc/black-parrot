@@ -1,10 +1,11 @@
 #include "svdpi.h"
 #include <iostream>
 #include "dromajo_cosim.h"
-#include "stdlib.h"
 #include <string>
 #include <vector>
 #include <cstdio>
+#include "verilated_vcd_c.h"
+#include <cstdlib>>
 
 using namespace std;
 
@@ -45,7 +46,8 @@ void struct_reader() {
   if(run_num == 1) {
     cout << "READING FILE START !!!!!!!!!!!!!!" <<  endl;
 
-    mpdt_c_reader = fopen("/mada/users/rkjayara/projs/mpdt/tmp/runs/0/commit_0.trace", "r");
+    //mpdt_c_reader = fopen("/mada/users/rkjayara/projs/mpdt/tmp/runs/0/commit_0.trace", "r");
+    mpdt_c_reader = fopen("/home/ramper/projs/mpdt/tmp/runs/0/commit_0.trace", "r");
     if(mpdt_c_reader != NULL) {
       cout << "READING FROM run0 commit_0.trace FILE" << endl;
       while(fscanf(mpdt_c_reader, "%010d %08x %016x %08x %016x %08x %016x\n", &c_reader[c_read_ite].cycle, &c_reader[c_read_ite].hartid, &c_reader[c_read_ite].pc, &c_reader[c_read_ite].opcode, &c_reader[c_read_ite].inst_cnt, &c_reader[c_read_ite].rd_addr, &c_reader[c_read_ite].data) != EOF) {
@@ -63,11 +65,12 @@ void struct_reader() {
       exit(1);
     }
 
-    mpdt_s_reader = fopen("/mada/users/rkjayara/projs/mpdt/tmp/runs/0/stall_0.trace", "r");
+    //mpdt_s_reader = fopen("/mada/users/rkjayara/projs/mpdt/tmp/runs/0/stall_0.trace", "r");
+    mpdt_s_reader = fopen("/home/ramper/projs/mpdt/tmp/runs/0/stall_0.trace", "r");
     if(mpdt_s_reader !=NULL) {
       cout << "READING FROM run0 stall_0.trace FILE" << endl;
       while(fscanf(mpdt_s_reader, "%010d,%04x,%04x,%016x,%04d\n", &s_reader[s_read_ite].cycle, &s_reader[s_read_ite].x, &s_reader[s_read_ite].y, &s_reader[s_read_ite].pc, &s_reader[s_read_ite].operation) != EOF) {
-        printf("cycle: %010d x: %04x y: %04x pc: %016x operation: %04d", s_reader[s_read_ite].cycle, s_reader[s_read_ite].x, s_reader[s_read_ite].y, s_reader[s_read_ite].pc, s_reader[s_read_ite].operation);
+        printf("cycle: %010d x: %04x y: %04x pc: %016x operation: %04d\n", s_reader[s_read_ite].cycle, s_reader[s_read_ite].x, s_reader[s_read_ite].y, s_reader[s_read_ite].pc, s_reader[s_read_ite].operation);
         ++s_read_ite;
       }
       cout << "READ " << s_read_ite << " LINES IN TOTAL FOR STALL" << endl;
