@@ -55,7 +55,7 @@
     ,unknown             = 5'd0
   } bp_stall_reason_e;
 
-  import "DPI-C" function void get_cycle(input bit[29:0] cycle_cnt);
+import "DPI-C" function void get_cycle(input bit[29:0] cycle_cnt);
 
 // The BlackParrot core pipeline is a mostly non-stalling pipeline, decoupled between the front-end
 // and back-end.

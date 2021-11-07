@@ -15,6 +15,7 @@
   import "DPI-C" context function void set_finish(int hartid);
   import "DPI-C" context function bit check_terminate();
   import "DPI-C" context function void dromajo_printer();
+  import "DPI-C" function void put_cycle(output bit[31:0] cycle_cnt);
 
 module bp_nonsynth_cosim
   import bp_common_pkg::*;
@@ -65,7 +66,8 @@ module bp_nonsynth_cosim
   bp_be_commit_pkt_s commit_pkt;
   assign commit_pkt = commit_pkt_i;
 
-  logic [29:0] commit_cycle_cnt;
+  bit [31:0] commit_cycle_cnt;
+/*  logic [29:0] commit_cycle_cnt;
   bsg_counter_clear_up
    #(.max_val_p(2**30-1), .init_val_p(0))
    commit_cycle_counter
@@ -75,7 +77,7 @@ module bp_nonsynth_cosim
      ,.clear_i(1'b0)
      ,.up_i(1'b1)
      ,.count_o(commit_cycle_cnt)
-     );
+     );*/
 
   bp_be_decode_s decode_r;
   bsg_dff_chain
@@ -261,6 +263,7 @@ module bp_nonsynth_cosim
   always_ff @(negedge clk_i) 
     begin
       dromajo_printer();
+      put_cycle(commit_cycle_cnt);
       if (trace_en_i & commit_fifo_yumi_li & instret_v_r & commit_pc_r != '0)
         begin
           $fwrite(file, "%010d %08x %016x %08x %016x ", commit_cycle_cnt, mhartid_i, commit_pc_r, commit_instr_r.opcode, instr_cnt);

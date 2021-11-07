@@ -15,8 +15,9 @@ char init = 0;
 int run_num = -1;
 FILE* mpdt_c_reader;
 FILE* mpdt_s_reader;
+FILE* mpdt_f_reader;
 FILE* pc_d;
-int c_read_ite = 0, s_read_ite = 0;
+int c_read_ite = 0, s_read_ite = 0, f_read_ite = 0;
 
 uint64_t counter = 0;
 
@@ -38,9 +39,17 @@ typedef struct stall_reader_t {
   uint16_t                                operation;
 }stall_reader_t;
 
+typedef struct fepc_reader_t {
+  uint32_t                                cycle;
+  uint64_t                                npc;
+  uint64_t                                fpc;
+} fepc_reader_t;
+
 commit_reader_t c_reader[10000] = {{0}};
 stall_reader_t  s_reader[10000] = {{0}};
-uint32_t d_cycle_cnt;
+fepc_reader_t   f_reader[10000] = {{0}};
+
+uint32_t d_cycle_cnt = 0;
 
 void struct_reader() {
   if(run_num == 1) {
@@ -51,7 +60,7 @@ void struct_reader() {
     if(mpdt_c_reader != NULL) {
       cout << "READING FROM run0 commit_0.trace FILE" << endl;
       while(fscanf(mpdt_c_reader, "%010d %08x %016x %08x %016x %08x %016x\n", &c_reader[c_read_ite].cycle, &c_reader[c_read_ite].hartid, &c_reader[c_read_ite].pc, &c_reader[c_read_ite].opcode, &c_reader[c_read_ite].inst_cnt, &c_reader[c_read_ite].rd_addr, &c_reader[c_read_ite].data) != EOF) {
-        printf("cycle: %010d hartid: %08x pc: %016x opcode: %08x inst_cnt: %016x rd_addr: %08x data: %016x\n", c_reader[c_read_ite].cycle, c_reader[c_read_ite].hartid, c_reader[c_read_ite].pc, c_reader[c_read_ite].opcode, c_reader[c_read_ite].inst_cnt, c_reader[c_read_ite].rd_addr, c_reader[c_read_ite].data);
+        //printf("cycle: %010d hartid: %08x pc: %016x opcode: %08x inst_cnt: %016x rd_addr: %08x data: %016x\n", c_reader[c_read_ite].cycle, c_reader[c_read_ite].hartid, c_reader[c_read_ite].pc, c_reader[c_read_ite].opcode, c_reader[c_read_ite].inst_cnt, c_reader[c_read_ite].rd_addr, c_reader[c_read_ite].data);
         ++c_read_ite;
       }
       cout << "READ " << c_read_ite << " LINES IN TOTAL FOR COMMIT" << endl;
@@ -70,7 +79,7 @@ void struct_reader() {
     if(mpdt_s_reader !=NULL) {
       cout << "READING FROM run0 stall_0.trace FILE" << endl;
       while(fscanf(mpdt_s_reader, "%010d,%04x,%04x,%016x,%04d\n", &s_reader[s_read_ite].cycle, &s_reader[s_read_ite].x, &s_reader[s_read_ite].y, &s_reader[s_read_ite].pc, &s_reader[s_read_ite].operation) != EOF) {
-        printf("cycle: %010d x: %04x y: %04x pc: %016x operation: %04d\n", s_reader[s_read_ite].cycle, s_reader[s_read_ite].x, s_reader[s_read_ite].y, s_reader[s_read_ite].pc, s_reader[s_read_ite].operation);
+        //printf("cycle: %010d x: %04x y: %04x pc: %016x operation: %04d\n", s_reader[s_read_ite].cycle, s_reader[s_read_ite].x, s_reader[s_read_ite].y, s_reader[s_read_ite].pc, s_reader[s_read_ite].operation);
         ++s_read_ite;
       }
       cout << "READ " << s_read_ite << " LINES IN TOTAL FOR STALL" << endl;
@@ -81,6 +90,25 @@ void struct_reader() {
       cout << "STALL FILE READ ERROR" << endl;
       cout << "STALL FILE READ ERROR" << endl;
       cout << "STALL FILE READ ERROR" << endl;
+      exit(1);
+    }
+
+    //mpdt_s_reader = fopen("/mada/users/rkjayara/projs/mpdt/tmp/runs/0/pc_dump.txt", "r");
+    mpdt_f_reader = fopen("/home/ramper/projs/mpdt/tmp/runs/0/pc_dump.txt", "r");
+    if(mpdt_f_reader != NULL) {
+      cout << "READING FROM run0 pc_dump.txt FILE" << endl;
+      while(fscanf(mpdt_f_reader, "%d %x %x\n", &f_reader[f_read_ite].cycle, &f_reader[f_read_ite].npc, &f_reader[f_read_ite].fpc) != EOF) {
+        //printf("cycle: %d npc: %x %x\n", f_reader[f_read_ite].cycle, f_reader[f_read_ite].npc, f_reader[f_read_ite].fpc);
+        ++f_read_ite;
+      }
+      cout << "READ " << f_read_ite << " LINES IN TOTAL FOR PCDUMP" << endl;
+    }
+    else {
+      cout << "PCDUMP FILE READ ERROR" << endl;
+      cout << "PCDUMP FILE READ ERROR" << endl;
+      cout << "PCDUMP FILE READ ERROR" << endl;
+      cout << "PCDUMP FILE READ ERROR" << endl;
+      cout << "PCDUMP FILE READ ERROR" << endl;
       exit(1);
     }
   }
@@ -184,7 +212,7 @@ extern "C" bool check_terminate() {
 
 extern "C" void dromajo_printer() {
   if(counter % 1000 == 0)
-    cout << "RUN: " << run_num << " Counter at: " << counter << endl;
+    cout << "RUN: " << run_num << " Counter at: " << counter << " cycle at: " << d_cycle_cnt << endl;
   counter++;
 }
 
@@ -212,7 +240,11 @@ extern "C" void get_cycle(const svBitVecVal* cycle_cnt) {
   //printf("BIT CYCLE: %ld LOGIC CYCLE: %ld \n", d_cycle_cnt, *cycle_cnt);
 }
 
-extern "C" void pc_dumper(const svBitVecVal* pc) {
+extern "C" void put_cycle(svBitVecVal* commit_cycle_cnt) {
+  *commit_cycle_cnt = (svBitVecVal) d_cycle_cnt;
+}
+
+extern "C" void pc_dumper(const svBitVecVal* npc, const svBitVecVal* fpc) {
   if(init == 1)
-    fprintf(pc_d, "%d %x\n", d_cycle_cnt, (uint64_t)*pc);  
+    fprintf(pc_d, "%d %x %x\n", d_cycle_cnt, (uint64_t)*npc, (uint64_t)*fpc);
 }
