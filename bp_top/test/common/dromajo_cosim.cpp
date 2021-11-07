@@ -43,11 +43,12 @@ typedef struct fepc_reader_t {
   uint32_t                                cycle;
   uint64_t                                npc;
   uint64_t                                fpc;
+  uint8_t                                 ed;
 } fepc_reader_t;
 
 commit_reader_t c_reader[10000] = {{0}};
 stall_reader_t  s_reader[10000] = {{0}};
-fepc_reader_t   f_reader[10000] = {{0}};
+fepc_reader_t   f_reader[100000] = {{0}};
 
 uint32_t d_cycle_cnt = 0;
 
@@ -106,8 +107,8 @@ void struct_reader() {
     mpdt_f_reader = fopen("/home/ramper/projs/mpdt/tmp/runs/0/pc_dump.txt", "r");
     if(mpdt_f_reader != NULL) {
       cout << "READING FROM run0 pc_dump.txt FILE" << endl;
-      while(fscanf(mpdt_f_reader, "%d %x %x\n", &f_reader[f_read_ite].cycle, &f_reader[f_read_ite].npc, &f_reader[f_read_ite].fpc) != EOF) {
-        //printf("cycle: %d npc: %x %x\n", f_reader[f_read_ite].cycle, f_reader[f_read_ite].npc, f_reader[f_read_ite].fpc);
+      while(fscanf(mpdt_f_reader, "%d %x %x %1x\n", &f_reader[f_read_ite].cycle, &f_reader[f_read_ite].npc, &f_reader[f_read_ite].fpc, &f_reader[f_read_ite].ed) != EOF) {
+        printf("cycle: %d npc: %x fpc: %x ed: %1x\n", f_reader[f_read_ite].cycle, f_reader[f_read_ite].npc, f_reader[f_read_ite].fpc, f_reader[f_read_ite].ed);
         ++f_read_ite;
       }
       cout << "READ " << f_read_ite << " LINES IN TOTAL FOR PCDUMP" << endl;
@@ -253,7 +254,7 @@ extern "C" void put_cycle(svBitVecVal* commit_cycle_cnt) {
   *commit_cycle_cnt = (svBitVecVal) d_cycle_cnt;
 }
 
-extern "C" void pc_dumper(const svBitVecVal* npc, const svBitVecVal* fpc) {
+extern "C" void pc_dumper(const svBitVecVal* npc, const svBitVecVal* fpc, svBit* edge) {
   if(init == 1)
-    fprintf(pc_d, "%d %x %x\n", d_cycle_cnt, (uint64_t)*npc, (uint64_t)*fpc);
+    fprintf(pc_d, "%d %x %x %1x\n", d_cycle_cnt, (uint64_t)*npc, (uint64_t)*fpc, edge);
 }
