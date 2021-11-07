@@ -51,6 +51,15 @@ fepc_reader_t   f_reader[10000] = {{0}};
 
 uint32_t d_cycle_cnt = 0;
 
+/* TODO: based on the icache code and fe code, it sends request and just returns the data later, might have to dump data also and then match fetch to cache and data coming back;
+
+Looks like it will be easiest to just fuzz the address going to the cache.
+(construct new packet out?), it doesn't seem to be used in the icache. 
+Figure out which input into icache needs to be fuzzed to accurately fetch some other address. Maybe fuzz nextpc out from pc_gen? this way whatevr process takes care of sending icache the required data will take care of everything.
+
+Dump from pc_gen instead of FE top. this way we can more accurately match dumps and what's going on in the code
+*/
+
 void struct_reader() {
   if(run_num == 1) {
     cout << "READING FILE START !!!!!!!!!!!!!!" <<  endl;
