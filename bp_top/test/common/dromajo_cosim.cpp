@@ -5,7 +5,7 @@
 #include <vector>
 #include <cstdio>
 #include "verilated_vcd_c.h"
-#include <cstdlib>>
+//#include <cstdlib>>
 
 using namespace std;
 
@@ -19,7 +19,7 @@ FILE* mpdt_f_reader;
 FILE* pc_d;
 int c_read_ite = 0, s_read_ite = 0, f_read_ite = 0;
 
-uint64_t counter = 0;
+uint64_t counter = 0, match_counter = 0;
 
 typedef struct commit_reader_t {
   uint32_t                                cycle;
@@ -65,8 +65,8 @@ void struct_reader() {
   if(run_num == 1) {
     cout << "READING FILE START !!!!!!!!!!!!!!" <<  endl;
 
-    //mpdt_c_reader = fopen("/mada/users/rkjayara/projs/mpdt/tmp/runs/0/commit_0.trace", "r");
-    mpdt_c_reader = fopen("/home/ramper/projs/mpdt/tmp/runs/0/commit_0.trace", "r");
+    mpdt_c_reader = fopen("/mada/users/rkjayara/projs/mpdt/tmp/runs/0/commit_0.trace", "r");
+    //mpdt_c_reader = fopen("/home/ramper/projs/mpdt/tmp/runs/0/commit_0.trace", "r");
     if(mpdt_c_reader != NULL) {
       cout << "READING FROM run0 commit_0.trace FILE" << endl;
       while(fscanf(mpdt_c_reader, "%010d %08x %016x %08x %016x %08x %016x\n", &c_reader[c_read_ite].cycle, &c_reader[c_read_ite].hartid, &c_reader[c_read_ite].pc, &c_reader[c_read_ite].opcode, &c_reader[c_read_ite].inst_cnt, &c_reader[c_read_ite].rd_addr, &c_reader[c_read_ite].data) != EOF) {
@@ -84,8 +84,8 @@ void struct_reader() {
       exit(1);
     }
 
-    //mpdt_s_reader = fopen("/mada/users/rkjayara/projs/mpdt/tmp/runs/0/stall_0.trace", "r");
-    mpdt_s_reader = fopen("/home/ramper/projs/mpdt/tmp/runs/0/stall_0.trace", "r");
+    mpdt_s_reader = fopen("/mada/users/rkjayara/projs/mpdt/tmp/runs/0/stall_0.trace", "r");
+    //mpdt_s_reader = fopen("/home/ramper/projs/mpdt/tmp/runs/0/stall_0.trace", "r");
     if(mpdt_s_reader !=NULL) {
       cout << "READING FROM run0 stall_0.trace FILE" << endl;
       while(fscanf(mpdt_s_reader, "%010d,%04x,%04x,%016x,%04d\n", &s_reader[s_read_ite].cycle, &s_reader[s_read_ite].x, &s_reader[s_read_ite].y, &s_reader[s_read_ite].pc, &s_reader[s_read_ite].operation) != EOF) {
@@ -103,12 +103,12 @@ void struct_reader() {
       exit(1);
     }
 
-    //mpdt_s_reader = fopen("/mada/users/rkjayara/projs/mpdt/tmp/runs/0/pc_dump.txt", "r");
-    mpdt_f_reader = fopen("/home/ramper/projs/mpdt/tmp/runs/0/pc_dump.txt", "r");
+    mpdt_f_reader = fopen("/mada/users/rkjayara/projs/mpdt/tmp/runs/0/pc_dump.txt", "r");
+    //mpdt_f_reader = fopen("/home/ramper/projs/mpdt/tmp/runs/0/pc_dump.txt", "r");
     if(mpdt_f_reader != NULL) {
       cout << "READING FROM run0 pc_dump.txt FILE" << endl;
       while(fscanf(mpdt_f_reader, "%d %x %x %1x\n", &f_reader[f_read_ite].cycle, &f_reader[f_read_ite].npc, &f_reader[f_read_ite].fpc, &f_reader[f_read_ite].ed) != EOF) {
-        printf("cycle: %d npc: %x fpc: %x ed: %1x\n", f_reader[f_read_ite].cycle, f_reader[f_read_ite].npc, f_reader[f_read_ite].fpc, f_reader[f_read_ite].ed);
+        //printf("cycle: %d npc: %x fpc: %x ed: %1x\n", f_reader[f_read_ite].cycle, f_reader[f_read_ite].npc, f_reader[f_read_ite].fpc, f_reader[f_read_ite].ed);
         ++f_read_ite;
       }
       cout << "READ " << f_read_ite << " LINES IN TOTAL FOR PCDUMP" << endl;
@@ -254,7 +254,22 @@ extern "C" void put_cycle(svBitVecVal* commit_cycle_cnt) {
   *commit_cycle_cnt = (svBitVecVal) d_cycle_cnt;
 }
 
-extern "C" void pc_dumper(const svBitVecVal* npc, const svBitVecVal* fpc, svBit* edge) {
+extern "C" void pc_dumper(const svBitVecVal* npc, const svBitVecVal* fpc) {
   if(init == 1)
-    fprintf(pc_d, "%d %x %x %1x\n", d_cycle_cnt, (uint64_t)*npc, (uint64_t)*fpc, edge);
+    fprintf(pc_d, "%d %x %x %1x\n", d_cycle_cnt, (uint64_t)*npc, (uint64_t)*fpc, 0);
+}
+
+extern "C" void is_mpdt(const svBitVecVal* npc, const svBitVecVal* fpc, svBit* mpdt_flag) {
+  if(init == 1 && run_num == 1) {
+    int cur_idx = d_cycle_cnt;
+    if(f_reader[cur_idx].cycle == d_cycle_cnt && f_reader[cur_idx].npc == *npc && f_reader[cur_idx].fpc == *fpc ) {
+      if (match_counter % 500 == 0)
+        cout << "MATCH FOR: " << match_counter << " TIMES." << endl;
+      match_counter += 1;
+    }
+    else { 
+      //cout << "NO MATCH AT CYCLE: " << d_cycle_cnt;
+      printf(" NO MATCH read %d %x %x %x And got %d %x %x %x\n", f_reader[cur_idx].cycle, f_reader[cur_idx].npc, f_reader[cur_idx].fpc, d_cycle_cnt, *npc, *fpc, 0);
+    }
+  }
 }

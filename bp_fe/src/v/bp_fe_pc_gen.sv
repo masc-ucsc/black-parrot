@@ -9,7 +9,11 @@
 `include "bp_common_defines.svh"
 `include "bp_fe_defines.svh"
 
-import "DPI-C" function void pc_dumper(input bit[38:0] npc, input bit[38:0] fpc, input bit ed);
+//import "DPI-C" function void pc_dumper(input bit[38:0] npc, input bit[38:0] fpc, input bit ed);
+
+//import "DPI-C" function void pc_dumper(input bit[38:0] npc, input bit[38:0] fpc);
+
+import "DPI-C" function void is_mpdt(input bit[38:0] npc, input bit[38:0] fpc, output bit mpdt_flag);
 
 module bp_fe_pc_gen
  import bp_common_pkg::*;
@@ -64,6 +68,8 @@ module bp_fe_pc_gen
   logic [vaddr_width_p-1:0] pc_if1_n, pc_if1_r;
   logic [vaddr_width_p-1:0] pc_if2_n, pc_if2_r;
 
+  bit mpdt_flag;
+
   /////////////////
   // IF1
   /////////////////
@@ -85,6 +91,8 @@ module bp_fe_pc_gen
     else
       begin
         next_pc_o = pc_plus4;
+        mpdt_flag = 1'b0;
+        is_mpdt(next_pc_o, fetch_pc_o, mpdt_flag);
       end
   assign pc_if1_n = next_pc_o;
 
@@ -289,12 +297,12 @@ module bp_fe_pc_gen
 
   assign init_done_o = bht_init_done_lo & btb_init_done_lo;
 
-  always_ff @(posedge clk_i or negedge clk_i) begin
+  /*always_ff @(posedge clk_i or negedge clk_i) begin
     bit [38:0] npc = next_pc_o;
     bit [38:0] fpc = fetch_pc_o;
     bit ed = clk_i;
     pc_dumper(npc, fpc, ed);
-  end
+  end*/
 
 endmodule
 
