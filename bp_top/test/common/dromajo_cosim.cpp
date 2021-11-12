@@ -18,6 +18,8 @@ FILE* mpdt_s_reader;
 FILE* mpdt_f_reader;
 FILE* pc_d;
 int c_read_ite = 0, s_read_ite = 0, f_read_ite = 0;
+int cur_idx_c = 0, cur_idx_s = 0, cur_idx_f = 0;
+uint64_t prev_pc_s = 0;
 
 uint64_t counter = 0, match_counter = 0;
 
@@ -43,7 +45,7 @@ typedef struct fepc_reader_t {
   uint32_t                                cycle;
   uint64_t                                npc;
   uint64_t                                fpc;
-  uint8_t                                 ed;
+  uint32_t                                 rn;
 } fepc_reader_t;
 
 commit_reader_t c_reader[10000] = {{0}};
@@ -107,8 +109,8 @@ void struct_reader() {
     //mpdt_f_reader = fopen("/home/ramper/projs/mpdt/tmp/runs/0/pc_dump.txt", "r");
     if(mpdt_f_reader != NULL) {
       cout << "READING FROM run0 pc_dump.txt FILE" << endl;
-      while(fscanf(mpdt_f_reader, "%d %x %x %1x\n", &f_reader[f_read_ite].cycle, &f_reader[f_read_ite].npc, &f_reader[f_read_ite].fpc, &f_reader[f_read_ite].ed) != EOF) {
-        //printf("cycle: %d npc: %x fpc: %x ed: %1x\n", f_reader[f_read_ite].cycle, f_reader[f_read_ite].npc, f_reader[f_read_ite].fpc, f_reader[f_read_ite].ed);
+      while(fscanf(mpdt_f_reader, "%d %x %x %1x\n", &f_reader[f_read_ite].cycle, &f_reader[f_read_ite].npc, &f_reader[f_read_ite].fpc, &f_reader[f_read_ite].rn) != EOF) {
+        //printf("cycle: %d npc: %x fpc: %x rn: %1x\n", f_reader[f_read_ite].cycle, f_reader[f_read_ite].npc, f_reader[f_read_ite].fpc, f_reader[f_read_ite].rn);
         ++f_read_ite;
       }
       cout << "READ " << f_read_ite << " LINES IN TOTAL FOR PCDUMP" << endl;
@@ -256,11 +258,28 @@ extern "C" void put_cycle(svBitVecVal* commit_cycle_cnt) {
 
 extern "C" void pc_dumper(const svBitVecVal* npc, const svBitVecVal* fpc) {
   if(init == 1)
-    fprintf(pc_d, "%d %x %x %1x\n", d_cycle_cnt, (uint64_t)*npc, (uint64_t)*fpc, 0);
+    fprintf(pc_d, "%d %x %x %1x\n", d_cycle_cnt, (uint64_t)*npc, (uint64_t)*fpc, run_num);
 }
+
+void next_mispredict()
+{
+  //cout << "CALLED NEXT PC IDX " << cur_idx_s << " PrevPC: " << prev_pc_s << endl;
+  if (init == 1 && run_num == 1) {
+    prev_pc_s = s_reader [cur_idx_s].pc;
+    for(; cur_idx_s < s_read_ite ; ++cur_idx_s) {
+      if(s_reader[cur_idx_s].operation == 13 && (uint64_t)s_reader[cur_idx_s].pc > 0x80000200) 
+        if(s_reader[cur_idx_s].pc != prev_pc_s) {
+          //cout << "FOUND NEXT MISPREDUCT FROM " << prev_pc_s << " WITH " << s_reader[cur_idx_s].pc << endl;
+          break;
+        }
+    }
+  }
+}
+
 
 extern "C" void is_mpdt(const svBitVecVal* npc, const svBitVecVal* fpc, svBit* mpdt_flag) {
   if(init == 1 && run_num == 1) {
+    /*
     int cur_idx = d_cycle_cnt;
     if(f_reader[cur_idx].cycle == d_cycle_cnt && f_reader[cur_idx].npc == *npc && f_reader[cur_idx].fpc == *fpc ) {
       if (match_counter % 500 == 0)
@@ -269,7 +288,13 @@ extern "C" void is_mpdt(const svBitVecVal* npc, const svBitVecVal* fpc, svBit* m
     }
     else { 
       //cout << "NO MATCH AT CYCLE: " << d_cycle_cnt;
-      printf(" NO MATCH read %d %x %x %x And got %d %x %x %x\n", f_reader[cur_idx].cycle, f_reader[cur_idx].npc, f_reader[cur_idx].fpc, d_cycle_cnt, *npc, *fpc, 0);
+      printf(" NO MATCH read %d %x %x %x And got %d %x %x %x\n", f_reader[cur_idx].cycle, f_reader[cur_idx].npc, f_reader[cur_idx].fpc, d_cycle_cnt, *npc, *fpc, (uint32_t)run_num);
+    }*/
+    
+    if(d_cycle_cnt >= s_reader[cur_idx_s].cycle && cur_idx_s != s_read_ite) {
+      printf("CUR IDX: %d IDXPC: %x CALLPC: %x CYCLE: %d\n", cur_idx_s, s_reader[cur_idx_s].pc, *npc, d_cycle_cnt);      
+      next_mispredict();
+      printf("AFTER CALL: CUR IDX: %d IDXPC: %x CALLPC: %x CYCLE: %d\n", cur_idx_s, s_reader[cur_idx_s].pc, *npc, d_cycle_cnt);
     }
   }
 }
