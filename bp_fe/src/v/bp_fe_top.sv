@@ -6,7 +6,7 @@
 `include "bp_fe_defines.svh"
 
 
-import "DPI-C" function void pc_dumper(input bit[38:0] npc, input bit[38:0] fpc);
+import "DPI-C" function void pc_dumper(input bit[38:0] npc, input bit[38:0] fpc, input bit [31:0] dat);
 
 module bp_fe_top
  import bp_fe_pkg::*;
@@ -426,8 +426,9 @@ module bp_fe_top
   always_comb begin
     bit [38:0] npc = next_pc_lo;
     bit [38:0] fpc = fetch_pc_lo;
+    bit [31:0] dat = icache_data_lo;
     //bit ed = clk_i;
-    pc_dumper(npc, fpc);
+    pc_dumper(npc, fpc, dat);
   end
 
 endmodule

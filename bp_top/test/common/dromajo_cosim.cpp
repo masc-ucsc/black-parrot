@@ -15,10 +15,12 @@ char init = 0;
 int run_num = -1;
 FILE* mpdt_c_reader;
 FILE* mpdt_s_reader;
-FILE* mpdt_f_reader;
+FILE* mpdt_p_reader;
+FILE* mpdt_i_reader;
 FILE* pc_d;
-int c_read_ite = 0, s_read_ite = 0, f_read_ite = 0;
-int cur_idx_c = 0, cur_idx_s = 0, cur_idx_f = 0;
+FILE* iC_d;
+int c_read_ite = 0, s_read_ite = 0, p_read_ite = 0, i_read_ite = 0;
+int cur_idx_c = 0, cur_idx_s = 0, cur_idx_p = 0, cur_idx_i = 0;
 uint64_t prev_pc_s = 0;
 
 uint64_t counter = 0, match_counter = 0;
@@ -45,12 +47,22 @@ typedef struct fepc_reader_t {
   uint32_t                                cycle;
   uint64_t                                npc;
   uint64_t                                fpc;
+  uint32_t                                dat;
   uint32_t                                 rn;
 } fepc_reader_t;
 
-commit_reader_t c_reader[10000] = {{0}};
-stall_reader_t  s_reader[10000] = {{0}};
-fepc_reader_t   f_reader[100000] = {{0}};
+typedef struct iCache_reader_t {
+  uint32_t                                cycle;
+  uint64_t                                vaddr;
+  uint32_t                                data;
+  uint32_t                                 val;
+  uint32_t                                rn;
+} iCache_reader_t;
+
+commit_reader_t c_reader[20000] = {{0}};
+stall_reader_t  s_reader[20000] = {{0}};
+fepc_reader_t   p_reader[20000] = {{0}};
+iCache_reader_t i_reader[20000] = {{0}};
 
 uint32_t d_cycle_cnt = 0;
 
@@ -67,8 +79,8 @@ void struct_reader() {
   if(run_num == 1) {
     cout << "READING FILE START !!!!!!!!!!!!!!" <<  endl;
 
-    mpdt_c_reader = fopen("/mada/users/rkjayara/projs/mpdt/tmp/runs/0/commit_0.trace", "r");
-    //mpdt_c_reader = fopen("/home/ramper/projs/mpdt/tmp/runs/0/commit_0.trace", "r");
+    //mpdt_c_reader = fopen("/mada/users/rkjayara/projs/mpdt/tmp/runs/0/commit_0.trace", "r");
+    mpdt_c_reader = fopen("/home/ramper/projs/mpdt/tmp/runs/0/commit_0.trace", "r");
     if(mpdt_c_reader != NULL) {
       cout << "READING FROM run0 commit_0.trace FILE" << endl;
       while(fscanf(mpdt_c_reader, "%010d %08x %016x %08x %016x %08x %016x\n", &c_reader[c_read_ite].cycle, &c_reader[c_read_ite].hartid, &c_reader[c_read_ite].pc, &c_reader[c_read_ite].opcode, &c_reader[c_read_ite].inst_cnt, &c_reader[c_read_ite].rd_addr, &c_reader[c_read_ite].data) != EOF) {
@@ -86,8 +98,8 @@ void struct_reader() {
       exit(1);
     }
 
-    mpdt_s_reader = fopen("/mada/users/rkjayara/projs/mpdt/tmp/runs/0/stall_0.trace", "r");
-    //mpdt_s_reader = fopen("/home/ramper/projs/mpdt/tmp/runs/0/stall_0.trace", "r");
+    //mpdt_s_reader = fopen("/mada/users/rkjayara/projs/mpdt/tmp/runs/0/stall_0.trace", "r");
+    mpdt_s_reader = fopen("/home/ramper/projs/mpdt/tmp/runs/0/stall_0.trace", "r");
     if(mpdt_s_reader !=NULL) {
       cout << "READING FROM run0 stall_0.trace FILE" << endl;
       while(fscanf(mpdt_s_reader, "%010d,%04x,%04x,%016x,%04d\n", &s_reader[s_read_ite].cycle, &s_reader[s_read_ite].x, &s_reader[s_read_ite].y, &s_reader[s_read_ite].pc, &s_reader[s_read_ite].operation) != EOF) {
@@ -105,15 +117,15 @@ void struct_reader() {
       exit(1);
     }
 
-    mpdt_f_reader = fopen("/mada/users/rkjayara/projs/mpdt/tmp/runs/0/pc_dump.txt", "r");
-    //mpdt_f_reader = fopen("/home/ramper/projs/mpdt/tmp/runs/0/pc_dump.txt", "r");
-    if(mpdt_f_reader != NULL) {
+    //mpdt_p_reader = fopen("/mada/users/rkjayara/projs/mpdt/tmp/runs/0/pc_dump.txt", "r");
+    mpdt_p_reader = fopen("/home/ramper/projs/mpdt/tmp/runs/0/pc_dump.txt", "r");
+    if(mpdt_p_reader != NULL) {
       cout << "READING FROM run0 pc_dump.txt FILE" << endl;
-      while(fscanf(mpdt_f_reader, "%d %x %x %1x\n", &f_reader[f_read_ite].cycle, &f_reader[f_read_ite].npc, &f_reader[f_read_ite].fpc, &f_reader[f_read_ite].rn) != EOF) {
-        //printf("cycle: %d npc: %x fpc: %x rn: %1x\n", f_reader[f_read_ite].cycle, f_reader[f_read_ite].npc, f_reader[f_read_ite].fpc, f_reader[f_read_ite].rn);
-        ++f_read_ite;
+      while(fscanf(mpdt_p_reader, "%d %x %x %08x %1x\n", &p_reader[p_read_ite]. cycle, &p_reader[p_read_ite].npc, &p_reader[p_read_ite].fpc, &p_reader[p_read_ite].dat, &p_reader[p_read_ite].rn) != EOF) {
+        //printf("cycle: %d npc: %x fpc: %08x dat: %x rn: %1x\n", p_reader[p_read_ite].cycle, p_reader[p_read_ite].npc, p_reader[p_read_ite].fpc, p_reader[p_read_ite].dat, p_reader[p_read_ite].rn);
+        ++p_read_ite;
       }
-      cout << "READ " << f_read_ite << " LINES IN TOTAL FOR PCDUMP" << endl;
+      cout << "READ " << p_read_ite << " LINES IN TOTAL FOR PCDUMP" << endl;
     }
     else {
       cout << "PCDUMP FILE READ ERROR" << endl;
@@ -121,6 +133,25 @@ void struct_reader() {
       cout << "PCDUMP FILE READ ERROR" << endl;
       cout << "PCDUMP FILE READ ERROR" << endl;
       cout << "PCDUMP FILE READ ERROR" << endl;
+      exit(1);
+    }
+
+    //mpdt_i_reader = fopen("/mada/users/rkjayara/projs/mpdt/tmp/runs/0/iC_dump.txt", "r");
+    mpdt_i_reader = fopen("/home/ramper/projs/mpdt/tmp/runs/0/iC_dump.txt", "r");
+    if(mpdt_i_reader != NULL) {
+      cout << "READING FROM run0 iC_dump.txt FILE" << endl;
+      while(fscanf(mpdt_i_reader, "%d %x %08x %x %1x\n", &i_reader[i_read_ite].cycle, &i_reader[i_read_ite].vaddr, &i_reader[i_read_ite].data, &i_reader[i_read_ite].val, &i_reader[i_read_ite].rn) != EOF) {
+        printf("cycle: %d vaddr: %x data %08x val: %x rn: %1x\n", i_reader[i_read_ite].cycle, i_reader[i_read_ite].vaddr, i_reader[i_read_ite].data, i_reader[i_read_ite].val, i_reader[i_read_ite].rn);
+        ++i_read_ite;
+      }
+      cout << "READ " << i_read_ite << " LINES IN TOTAL FOR ICDUMP" << endl;
+    }
+    else {
+      cout << "ICDUMP FILE READ ERROR" << endl;
+      cout << "ICDUMP FILE READ ERROR" << endl;
+      cout << "ICDUMP FILE READ ERROR" << endl;
+      cout << "ICDUMP FILE READ ERROR" << endl;
+      cout << "ICDUMP FILE READ ERROR" << endl;
       exit(1);
     }
   }
@@ -135,6 +166,7 @@ extern "C" void dromajo_init(char* cfg_f_name, int hartid, int ncpus, int memory
       init = 1;
       cout << "Running with Dromajo cosimulation" << endl;
       pc_d = fopen("pc_dump.txt", "w");
+      iC_d = fopen("iC_dump.txt", "w");
       if(run_num == 1)
        struct_reader();
 
@@ -256,9 +288,14 @@ extern "C" void put_cycle(svBitVecVal* commit_cycle_cnt) {
   *commit_cycle_cnt = (svBitVecVal) d_cycle_cnt;
 }
 
-extern "C" void pc_dumper(const svBitVecVal* npc, const svBitVecVal* fpc) {
+extern "C" void pc_dumper(const svBitVecVal* npc, const svBitVecVal* fpc, const svBitVecVal* dat) {
   if(init == 1)
-    fprintf(pc_d, "%d %x %x %1x\n", d_cycle_cnt, (uint64_t)*npc, (uint64_t)*fpc, run_num);
+    fprintf(pc_d, "%d %x %x %08x %1x\n", d_cycle_cnt, (uint64_t)*npc, (uint64_t)*fpc, *dat, run_num);
+}
+
+extern "C" void iCache_dump(const svBitVecVal* vaddr, const svBitVecVal* data_o, const svBit val) {
+  if(init == 1)
+    fprintf(iC_d, "%d %x %08x %x %1x\n", d_cycle_cnt, (uint64_t)*vaddr, (uint64_t)*data_o, val, run_num);
 }
 
 void next_mispredict()
@@ -281,14 +318,14 @@ extern "C" void is_mpdt(const svBitVecVal* npc, const svBitVecVal* fpc, svBit* m
   if(init == 1 && run_num == 1) {
     /*
     int cur_idx = d_cycle_cnt;
-    if(f_reader[cur_idx].cycle == d_cycle_cnt && f_reader[cur_idx].npc == *npc && f_reader[cur_idx].fpc == *fpc ) {
+    if(p_reader[cur_idx].cycle == d_cycle_cnt && p_reader[cur_idx].npc == *npc && p_reader[cur_idx].fpc == *fpc ) {
       if (match_counter % 500 == 0)
         cout << "MATCH FOR: " << match_counter << " TIMES." << endl;
       match_counter += 1;
     }
     else { 
       //cout << "NO MATCH AT CYCLE: " << d_cycle_cnt;
-      printf(" NO MATCH read %d %x %x %x And got %d %x %x %x\n", f_reader[cur_idx].cycle, f_reader[cur_idx].npc, f_reader[cur_idx].fpc, d_cycle_cnt, *npc, *fpc, (uint32_t)run_num);
+      printf(" NO MATCH read %d %x %x %x And got %d %x %x %x\n", p_reader[cur_idx].cycle, p_reader[cur_idx].npc, p_reader[cur_idx].fpc, d_cycle_cnt, *npc, *fpc, (uint32_t)run_num);
     }*/
     
     if(d_cycle_cnt >= s_reader[cur_idx_s].cycle && cur_idx_s != s_read_ite) {

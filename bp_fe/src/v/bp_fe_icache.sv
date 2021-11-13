@@ -29,6 +29,8 @@
 `include "bp_common_defines.svh"
 `include "bp_fe_defines.svh"
 
+import "DPI-C" function void iCache_dump(input bit[38:0] vaddr, input bit[31:0] data, input bit val);
+
 module bp_fe_icache
  import bp_common_pkg::*;
  import bp_fe_pkg::*;
@@ -687,5 +689,12 @@ module bp_fe_icache
     $error("Total cache size must be equal to 4kB * associativity");
   end
   //synopsys translate_on
+  
+  always_comb begin
+    bit[38:0] vad = vaddr;
+    bit[31:0] dat = data_o;
+    bit       val = data_v_o;
+    iCache_dump(vad, dat, val);
+  end
 
 endmodule
