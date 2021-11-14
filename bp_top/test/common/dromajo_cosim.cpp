@@ -48,6 +48,7 @@ typedef struct fepc_reader_t {
   uint64_t                                npc;
   uint64_t                                fpc;
   uint32_t                                dat;
+  uint32_t                                val;
   uint32_t                                 rn;
 } fepc_reader_t;
 
@@ -59,12 +60,24 @@ typedef struct iCache_reader_t {
   uint32_t                                rn;
 } iCache_reader_t;
 
-commit_reader_t c_reader[20000] = {{0}};
-stall_reader_t  s_reader[20000] = {{0}};
-fepc_reader_t   p_reader[20000] = {{0}};
-iCache_reader_t i_reader[20000] = {{0}};
+typedef struct mpdt_holder_t {
+  uint32_t                                start_cycle;
+  uint32_t                                end_cycle;
+  uint64_t                                start_addr;
+  uint64_t                                end_addr;
+  uint32_t                                fake_inst;
+}mpdt_holder_t;
+
+commit_reader_t c_reader[5000000] = {{0}};
+stall_reader_t  s_reader[5000000] = {{0}};
+fepc_reader_t   p_reader[5000000] = {{0}};
+iCache_reader_t i_reader[5000000] = {{0}};
+
+mpdt_holder_t   mpdt_now = {0};
 
 uint32_t d_cycle_cnt = 0;
+
+int mpdt_current_flag = 0;
 
 /* TODO: based on the icache code and fe code, it sends request and just returns the data later, might have to dump data also and then match fetch to cache and data coming back;
 
@@ -121,8 +134,8 @@ void struct_reader() {
     mpdt_p_reader = fopen("/home/ramper/projs/mpdt/tmp/runs/0/pc_dump.txt", "r");
     if(mpdt_p_reader != NULL) {
       cout << "READING FROM run0 pc_dump.txt FILE" << endl;
-      while(fscanf(mpdt_p_reader, "%d %x %x %08x %1x\n", &p_reader[p_read_ite]. cycle, &p_reader[p_read_ite].npc, &p_reader[p_read_ite].fpc, &p_reader[p_read_ite].dat, &p_reader[p_read_ite].rn) != EOF) {
-        //printf("cycle: %d npc: %x fpc: %08x dat: %x rn: %1x\n", p_reader[p_read_ite].cycle, p_reader[p_read_ite].npc, p_reader[p_read_ite].fpc, p_reader[p_read_ite].dat, p_reader[p_read_ite].rn);
+      while(fscanf(mpdt_p_reader, "%d %x %x %08x %x %1x\n", &p_reader[p_read_ite]. cycle, &p_reader[p_read_ite].npc, &p_reader[p_read_ite].fpc, &p_reader[p_read_ite].dat, &p_reader[p_read_ite].val, &p_reader[p_read_ite].rn) != EOF) {
+        //printf("cycle: %d npc: %x fpc: %x dat: %08x val: %x rn: %1x\n", p_reader[p_read_ite].cycle, p_reader[p_read_ite].npc, p_reader[p_read_ite].fpc, p_reader[p_read_ite].dat, p_reader[p_read_ite].val, p_reader[p_read_ite].rn);
         ++p_read_ite;
       }
       cout << "READ " << p_read_ite << " LINES IN TOTAL FOR PCDUMP" << endl;
@@ -141,7 +154,7 @@ void struct_reader() {
     if(mpdt_i_reader != NULL) {
       cout << "READING FROM run0 iC_dump.txt FILE" << endl;
       while(fscanf(mpdt_i_reader, "%d %x %08x %x %1x\n", &i_reader[i_read_ite].cycle, &i_reader[i_read_ite].vaddr, &i_reader[i_read_ite].data, &i_reader[i_read_ite].val, &i_reader[i_read_ite].rn) != EOF) {
-        printf("cycle: %d vaddr: %x data %08x val: %x rn: %1x\n", i_reader[i_read_ite].cycle, i_reader[i_read_ite].vaddr, i_reader[i_read_ite].data, i_reader[i_read_ite].val, i_reader[i_read_ite].rn);
+        //printf("cycle: %d vaddr: %x data %08x val: %x rn: %1x\n", i_reader[i_read_ite].cycle, i_reader[i_read_ite].vaddr, i_reader[i_read_ite].data, i_reader[i_read_ite].val, i_reader[i_read_ite].rn);
         ++i_read_ite;
       }
       cout << "READ " << i_read_ite << " LINES IN TOTAL FOR ICDUMP" << endl;
@@ -288,9 +301,9 @@ extern "C" void put_cycle(svBitVecVal* commit_cycle_cnt) {
   *commit_cycle_cnt = (svBitVecVal) d_cycle_cnt;
 }
 
-extern "C" void pc_dumper(const svBitVecVal* npc, const svBitVecVal* fpc, const svBitVecVal* dat) {
+extern "C" void pc_dumper(const svBitVecVal* npc, const svBitVecVal* fpc, const svBitVecVal* dat, const svBit val) {
   if(init == 1)
-    fprintf(pc_d, "%d %x %x %08x %1x\n", d_cycle_cnt, (uint64_t)*npc, (uint64_t)*fpc, *dat, run_num);
+    fprintf(pc_d, "%d %x %x %08x %x %1x\n", d_cycle_cnt, (uint64_t)*npc, (uint64_t)*fpc, *dat, val, run_num);
 }
 
 extern "C" void iCache_dump(const svBitVecVal* vaddr, const svBitVecVal* data_o, const svBit val) {
@@ -313,8 +326,57 @@ void next_mispredict()
   }
 }
 
+void set_mpdt_holder_cycles(uint32_t target_cycle)
+{
+  //printf("SET_MPDT: Got target cycle: %d\n", target_cycle);
+  int cur_idx = (int)target_cycle;
+  if(cur_idx < p_read_ite) {
+    if(target_cycle < p_reader[cur_idx].cycle) {
+      while(target_cycle != p_reader[cur_idx].cycle) {
+        ++cur_idx;
+      }
+    }
+    else if(target_cycle > p_reader[cur_idx].cycle) {
+      while(target_cycle != p_reader[cur_idx].cycle) {
+        --cur_idx;
+      }
+    }
+  }
+  if(target_cycle == p_reader[cur_idx].cycle) {
+    if(p_reader[cur_idx].fpc == mpdt_now.start_addr) {
+      mpdt_now.start_cycle = p_reader[cur_idx].cycle;
+    }
+    while(cur_idx < p_read_ite) {
+      ++cur_idx;
+      if(p_reader[cur_idx].fpc == mpdt_now.end_addr)
+        break;
+    }
+    //printf("AFTER LOOP IDX: %d\n", cur_idx);
+    if(p_reader[cur_idx].fpc == mpdt_now.end_addr){
+      mpdt_now.end_cycle = p_reader[cur_idx].cycle;
+    }
+    else {
+      printf("ERROR FINDING END CYCLE\n");
+      exit(1);
+    }
+  }
+  else {
+    printf("ERROR SETTING HOLDER CYCLES: COULDNT MATCH\n");
+    exit(1);
+  }
+  
+}
 
-extern "C" void is_mpdt(const svBitVecVal* npc, const svBitVecVal* fpc, svBit* mpdt_flag) {
+//void is_mpdt_helper(const svBitVecVal* npc, const svBitVecVal* fpc) {
+void is_mpdt_helper() {
+  mpdt_current_flag = 0;
+  if(d_cycle_cnt > mpdt_now.start_cycle && d_cycle_cnt < mpdt_now.end_cycle) {
+    mpdt_current_flag = 1;
+    printf("\n SET MPDT=1 AT CYCLE %d\n", d_cycle_cnt);
+  }
+}
+
+extern "C" void is_mpdt(const svBitVecVal* npc, const svBitVecVal* fpc, svBit* mpdt_flag, svBitVecVal* fake_inst) {
   if(init == 1 && run_num == 1) {
     /*
     int cur_idx = d_cycle_cnt;
@@ -329,9 +391,27 @@ extern "C" void is_mpdt(const svBitVecVal* npc, const svBitVecVal* fpc, svBit* m
     }*/
     
     if(d_cycle_cnt >= s_reader[cur_idx_s].cycle && cur_idx_s != s_read_ite) {
-      printf("CUR IDX: %d IDXPC: %x CALLPC: %x CYCLE: %d\n", cur_idx_s, s_reader[cur_idx_s].pc, *npc, d_cycle_cnt);      
+      //printf("CUR IDX: %d IDXPC: %x CALLPC: %x CYCLE: %d\n", cur_idx_s, s_reader[cur_idx_s].pc, *npc, d_cycle_cnt);      
       next_mispredict();
-      printf("AFTER CALL: CUR IDX: %d IDXPC: %x CALLPC: %x CYCLE: %d\n", cur_idx_s, s_reader[cur_idx_s].pc, *npc, d_cycle_cnt);
+      //printf("AFTER CALL: CUR IDX: %d IDXPC: %x CALLPC: %x CYCLE: %d\n", cur_idx_s, s_reader[cur_idx_s].pc, *npc, d_cycle_cnt);
+      mpdt_now.start_addr = s_reader[cur_idx_s-1].pc;
+      mpdt_now.end_addr   = s_reader[cur_idx_s].pc;
+      mpdt_now.fake_inst  = 0x0580006f;
+      set_mpdt_holder_cycles(s_reader[cur_idx_s-1].cycle - 6);
+      printf("SET START ADDR: %x START CYCLE: %d END ADDR: %x END CYCLE %d FAKE INST: %x\n\n", mpdt_now.start_addr, mpdt_now.start_cycle, mpdt_now.end_addr, mpdt_now.end_cycle, mpdt_now.fake_inst);
     }
+    is_mpdt_helper();
+    if(mpdt_current_flag) {
+      *mpdt_flag = (svBit)1;
+      *fake_inst = (svBitVecVal)mpdt_now.fake_inst;
+    }
+    else {
+      *mpdt_flag = (svBit)0;
+      *fake_inst = (svBitVecVal)0x00000000;
+    }
+  }
+  else if(init == 1 && run_num == 0) {
+    *mpdt_flag = (svBit)0;
+    *fake_inst = (svBitVecVal)0x00000000;
   }
 }

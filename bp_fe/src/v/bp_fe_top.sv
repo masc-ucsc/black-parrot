@@ -6,7 +6,9 @@
 `include "bp_fe_defines.svh"
 
 
-import "DPI-C" function void pc_dumper(input bit[38:0] npc, input bit[38:0] fpc, input bit [31:0] dat);
+import "DPI-C" function void pc_dumper(input bit[38:0] npc, input bit[38:0] fpc, input bit [31:0] dat, input bit val);
+
+import "DPI-C" function void is_mpdt(input bit[38:0] npc, input bit[38:0] fpc, output bit mpdt_flag, output bit[31:0] fake_inst);
 
 module bp_fe_top
  import bp_fe_pkg::*;
@@ -72,6 +74,12 @@ module bp_fe_top
   bp_cfg_bus_s cfg_bus_cast_i;
   assign cfg_bus_cast_i = cfg_bus_i;
 
+  bit           mpdt_flag;
+  bit   [31:0]  fake_inst;
+  logic [31:0]  fake_inst_l;
+  bit   [38:0]  npc_is;
+  bit   [38:0]  fpc_is;
+
   // FSM
   enum logic [1:0] {e_wait=2'd0, e_run, e_stall} state_n, state_r;
 
@@ -88,6 +96,7 @@ module bp_fe_top
   bp_fe_branch_metadata_fwd_s attaboy_br_metadata_fwd_li;
   logic attaboy_v_li, attaboy_yumi_lo, attaboy_taken_li, attaboy_ntaken_li;
   logic [vaddr_width_p-1:0] attaboy_pc_li;
+  logic [instr_width_gp-1:0] fetch_li_orig;
   logic [instr_width_gp-1:0] fetch_li;
   logic [vaddr_width_p-1:0] fetch_pc_lo;
   logic fetch_instr_v_li, fetch_exception_v_li, fetch_fail_v_li;
@@ -116,7 +125,7 @@ module bp_fe_top
 
      ,.ovr_o(ovr_lo)
 
-     ,.fetch_i(fetch_li)
+     ,.fetch_i(fetch_li_orig)
      ,.fetch_instr_v_i(fetch_instr_v_li)
      ,.fetch_exception_v_i(fetch_exception_v_li)
      ,.fetch_br_metadata_fwd_o(fetch_br_metadata_fwd_lo)
@@ -365,11 +374,20 @@ module bp_fe_top
   assign fetch_instr_v_li     = fe_queue_v_o & fe_instr_v;
   assign fetch_exception_v_li = fe_queue_v_o & fe_exception_v;
   assign fetch_fail_v_li      = v_if2_r & ~fe_queue_v_o;
-  assign fetch_li             = icache_data_lo;
+  assign fetch_li_orig        = icache_data_lo;
 
   wire stall   = fetch_fail_v_li | cmd_nonattaboy_v;
   wire unstall = icache_ready_lo & fe_queue_ready_i & ~cmd_nonattaboy_v;
-  always_comb
+  always_comb begin
+    npc_is = next_pc_lo;
+    fpc_is = fetch_pc_lo;
+    is_mpdt(npc_is, fpc_is, mpdt_flag, fake_inst);
+    fake_inst_l = fake_inst;
+    if(mpdt_flag == 1'b1) begin
+      fetch_li = fake_inst_l;
+    end else begin
+      fetch_li = fetch_li_orig;
+    end
     if (fe_exception_v)
       begin
         fe_queue_cast_o = '0;
@@ -391,6 +409,7 @@ module bp_fe_top
         fe_queue_cast_o.msg.fetch.instr               = fetch_li;
         fe_queue_cast_o.msg.fetch.branch_metadata_fwd = fetch_br_metadata_fwd_lo;
       end
+  end
 
   // Controlling state machine
   always_comb
@@ -426,9 +445,10 @@ module bp_fe_top
   always_comb begin
     bit [38:0] npc = next_pc_lo;
     bit [38:0] fpc = fetch_pc_lo;
-    bit [31:0] dat = icache_data_lo;
+    bit [31:0] dat = fetch_li;
+    bit        val = icache_data_v_lo;
     //bit ed = clk_i;
-    pc_dumper(npc, fpc, dat);
+    pc_dumper(npc, fpc, dat, val);
   end
 
 endmodule
