@@ -11,7 +11,7 @@ VV ?= $(VERILATOR)
 
 # Max number of threads to run verilated model with
 # TODO: Increase, higher threads currently break CI though
-VERILATOR_THREADS ?= 1
+#VERILATOR_THREADS ?= 1
 ## Tool options
 VV_OPTS  = --cc                 # Output in C++
 #VV_OPTS += --debug --gdbbt --trace   # Debugs and produces stack trace
