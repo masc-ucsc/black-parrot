@@ -77,7 +77,7 @@ mpdt_holder_t   mpdt_now = {0};
 
 uint32_t d_cycle_cnt = 0;
 
-int mpdt_current_flag = 0;
+int mpdt_current_flag = 0,  prev_mpdt_cyc = 0;
 
 /* TODO: based on the icache code and fe code, it sends request and just returns the data later, might have to dump data also and then match fetch to cache and data coming back;
 
@@ -313,13 +313,13 @@ extern "C" void iCache_dump(const svBitVecVal* vaddr, const svBitVecVal* data_o,
 
 void next_mispredict()
 {
-  //cout << "CALLED NEXT PC IDX " << cur_idx_s << " PrevPC: " << prev_pc_s << endl;
+  cout << std::hex << "CALLED NEXT PC IDX " << cur_idx_s << " PrevPC: " << prev_pc_s << endl;
   if (init == 1 && run_num == 1) {
     prev_pc_s = s_reader [cur_idx_s].pc;
     for(; cur_idx_s < s_read_ite ; ++cur_idx_s) {
-      if(s_reader[cur_idx_s].operation == 13 && (uint64_t)s_reader[cur_idx_s].pc > 0x80000200) 
+      if(s_reader[cur_idx_s].operation == 13 && (uint64_t)s_reader[cur_idx_s].pc > 0x80000300) 
         if(s_reader[cur_idx_s].pc != prev_pc_s) {
-          //cout << "FOUND NEXT MISPREDUCT FROM " << prev_pc_s << " WITH " << s_reader[cur_idx_s].pc << endl;
+          cout << std::hex << "FOUND NEXT MISPREDUCT FROM " << prev_pc_s << " WITH " << s_reader[cur_idx_s].pc << endl;
           break;
         }
     }
@@ -328,35 +328,38 @@ void next_mispredict()
 
 void set_mpdt_holder_cycles(uint32_t target_cycle)
 {
-  //printf("SET_MPDT: Got target cycle: %d\n", target_cycle);
+  printf("SET_MPDT: Got target cycle: %d\n", target_cycle);
   int cur_idx = (int)target_cycle;
-  if(cur_idx < p_read_ite) {
-    if(target_cycle < p_reader[cur_idx].cycle) {
-      while(target_cycle != p_reader[cur_idx].cycle) {
-        ++cur_idx;
-      }
-    }
-    else if(target_cycle > p_reader[cur_idx].cycle) {
-      while(target_cycle != p_reader[cur_idx].cycle) {
-        --cur_idx;
-      }
-    }
-  }
+  bool set_start = false;
   if(target_cycle == p_reader[cur_idx].cycle) {
     if(p_reader[cur_idx].fpc == mpdt_now.start_addr) {
       mpdt_now.start_cycle = p_reader[cur_idx].cycle;
+      set_start = true;
     }
     while(cur_idx < p_read_ite) {
       ++cur_idx;
-      if(p_reader[cur_idx].fpc == mpdt_now.end_addr)
+      if(p_reader[cur_idx].fpc == mpdt_now.end_addr && p_reader[cur_idx].val != 0)
         break;
     }
-    //printf("AFTER LOOP IDX: %d\n", cur_idx);
+    printf("AFTER LOOP IDX: %d\n", cur_idx);
     if(p_reader[cur_idx].fpc == mpdt_now.end_addr){
       mpdt_now.end_cycle = p_reader[cur_idx].cycle;
     }
     else {
       printf("ERROR FINDING END CYCLE\n");
+      exit(1);
+    }
+    if(set_start == false) {
+      while(p_reader[cur_idx].cycle > prev_mpdt_cyc) {
+        --cur_idx;
+        if(p_reader[cur_idx].fpc == mpdt_now.start_addr && p_reader[cur_idx].val == 1) {
+          mpdt_now.start_cycle = p_reader[cur_idx].cycle;
+          set_start = true;
+        }
+      }
+    } 
+    if (set_start == false) {
+      printf("ERROR SETTING START CYCLE\n");
       exit(1);
     }
   }
@@ -390,13 +393,14 @@ extern "C" void is_mpdt(const svBitVecVal* npc, const svBitVecVal* fpc, svBit* m
       printf(" NO MATCH read %d %x %x %x And got %d %x %x %x\n", p_reader[cur_idx].cycle, p_reader[cur_idx].npc, p_reader[cur_idx].fpc, d_cycle_cnt, *npc, *fpc, (uint32_t)run_num);
     }*/
     
-    if(d_cycle_cnt >= s_reader[cur_idx_s].cycle && cur_idx_s != s_read_ite) {
-      //printf("CUR IDX: %d IDXPC: %x CALLPC: %x CYCLE: %d\n", cur_idx_s, s_reader[cur_idx_s].pc, *npc, d_cycle_cnt);      
+    if(d_cycle_cnt >= s_reader[cur_idx_s].cycle && cur_idx_s != s_read_ite && d_cycle_cnt >= mpdt_now.end_cycle) {
+      printf("CUR IDX: %d IDXPC: %x CALLPC: %x CYCLE: %d\n", cur_idx_s, s_reader[cur_idx_s].pc, *npc, d_cycle_cnt);  
+      prev_mpdt_cyc = mpdt_now.end_cycle;    
       next_mispredict();
-      //printf("AFTER CALL: CUR IDX: %d IDXPC: %x CALLPC: %x CYCLE: %d\n", cur_idx_s, s_reader[cur_idx_s].pc, *npc, d_cycle_cnt);
+      printf("AFTER CALL: CUR IDX: %d IDXPC: %x CALLPC: %x CYCLE: %d\n", cur_idx_s, s_reader[cur_idx_s].pc, *npc, d_cycle_cnt);
       mpdt_now.start_addr = s_reader[cur_idx_s-1].pc;
       mpdt_now.end_addr   = s_reader[cur_idx_s].pc;
-      mpdt_now.fake_inst  = 0x0580006f;
+      mpdt_now.fake_inst  = 0x00e00093;
       set_mpdt_holder_cycles(s_reader[cur_idx_s-1].cycle - 6);
       printf("SET START ADDR: %x START CYCLE: %d END ADDR: %x END CYCLE %d FAKE INST: %x\n\n", mpdt_now.start_addr, mpdt_now.start_cycle, mpdt_now.end_addr, mpdt_now.end_cycle, mpdt_now.fake_inst);
     }
