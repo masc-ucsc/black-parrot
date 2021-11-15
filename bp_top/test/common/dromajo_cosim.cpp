@@ -83,6 +83,8 @@ uint32_t inst_arr[16] = {0};
 int inst_idx_max = 0, inst_idx_cur = 0;
 FILE* inst_reader;
 
+bool n_not_f = false;
+
 void inst_f_reader() {
   if(run_num == 1) {
     cout << "READING INST FILE" << endl;
@@ -356,46 +358,89 @@ void next_mispredict()
 
 void set_mpdt_holder_cycles(uint32_t target_cycle)
 {
-  //printf("SET_MPDT: Got target cycle: %d\n", target_cycle);
-  int cur_idx = (int)target_cycle;
-  bool set_start = false;
-  if(target_cycle == p_reader[cur_idx].cycle) {
-    if(p_reader[cur_idx].fpc == mpdt_now.start_addr) {
-      mpdt_now.start_cycle = p_reader[cur_idx].cycle;
-      set_start = true;
-    }
-    while(cur_idx < p_read_ite) {
-      ++cur_idx;
-      if(p_reader[cur_idx].fpc == mpdt_now.end_addr && p_reader[cur_idx].val != 0)
-        break;
-    }
-    //printf("AFTER LOOP IDX: %d\n", cur_idx);
-    if(p_reader[cur_idx].fpc == mpdt_now.end_addr){
-      mpdt_now.end_cycle = p_reader[cur_idx].cycle;
+  if(n_not_f == false) {
+    //printf("SET_MPDT: Got target cycle: %d\n", target_cycle);
+    int cur_idx = (int)target_cycle;
+    bool set_start = false;
+    printf("SET_MPDT: Got target cycle: %d and idx: %d\n", target_cycle, cur_idx);
+    if(target_cycle == p_reader[cur_idx].cycle) {
+      if(p_reader[cur_idx].fpc == mpdt_now.start_addr) {
+        mpdt_now.start_cycle = p_reader[cur_idx].cycle;
+        set_start = true;
+      }
+      while(cur_idx < p_read_ite) {
+        ++cur_idx;
+        if(p_reader[cur_idx].fpc == mpdt_now.end_addr && p_reader[cur_idx].val != 0)
+          break;
+      }
+      //printf("AFTER LOOP IDX: %d\n", cur_idx);
+      if(p_reader[cur_idx].fpc == mpdt_now.end_addr){
+        mpdt_now.end_cycle = p_reader[cur_idx].cycle;
+      }
+      else {
+        printf("ERROR FINDING END CYCLE\n");
+        exit(1);
+      }
+      if(set_start == false) {
+        while(p_reader[cur_idx].cycle > prev_mpdt_cyc) {
+          --cur_idx;
+          if(p_reader[cur_idx].fpc == mpdt_now.start_addr && p_reader[cur_idx].val == 1) {
+            mpdt_now.start_cycle = p_reader[cur_idx].cycle;
+            set_start = true;
+          }
+        }
+      } 
+      if (set_start == false) {
+        printf("ERROR SETTING START CYCLE\n");
+        exit(1);
+      }
     }
     else {
-      printf("ERROR FINDING END CYCLE\n");
+      printf("ERROR SETTING HOLDER CYCLES: COULDNT MATCH\n");
       exit(1);
     }
-    if(set_start == false) {
-      while(p_reader[cur_idx].cycle > prev_mpdt_cyc) {
-        --cur_idx;
-        if(p_reader[cur_idx].fpc == mpdt_now.start_addr && p_reader[cur_idx].val == 1) {
-          mpdt_now.start_cycle = p_reader[cur_idx].cycle;
-          set_start = true;
-        }
+  }
+  else if(n_not_f == true) {
+    //printf("SET_MPDT: Got target cycle: %d\n", target_cycle);
+    int cur_idx = (int)target_cycle;
+    bool set_start = false;
+    if(target_cycle == p_reader[cur_idx].cycle) {
+      if(p_reader[cur_idx].npc == mpdt_now.start_addr) {
+        mpdt_now.start_cycle = p_reader[cur_idx].cycle;
+        set_start = true;
       }
-    } 
-    if (set_start == false) {
-      printf("ERROR SETTING START CYCLE\n");
+      while(cur_idx < p_read_ite) {
+        ++cur_idx;
+        if(p_reader[cur_idx].npc == mpdt_now.end_addr && p_reader[cur_idx].val != 0)
+          break;
+      }
+      //printf("AFTER LOOP IDX: %d\n", cur_idx);
+      if(p_reader[cur_idx].npc == mpdt_now.end_addr){
+        mpdt_now.end_cycle = p_reader[cur_idx].cycle;
+      }
+      else {
+        printf("ERROR FINDING END CYCLE\n");
+        exit(1);
+      }
+      if(set_start == false) {
+        while(p_reader[cur_idx].cycle > prev_mpdt_cyc) {
+          --cur_idx;
+          if(p_reader[cur_idx].npc == mpdt_now.start_addr && p_reader[cur_idx].val == 1) {
+            mpdt_now.start_cycle = p_reader[cur_idx].cycle;
+            set_start = true;
+          }
+        }
+      } 
+      if (set_start == false) {
+        printf("ERROR SETTING START CYCLE\n");
+        exit(1);
+      }
+    }
+    else {
+      printf("ERROR SETTING HOLDER CYCLES: COULDNT MATCH\n");
       exit(1);
     }
   }
-  else {
-    printf("ERROR SETTING HOLDER CYCLES: COULDNT MATCH\n");
-    exit(1);
-  }
-  
 }
 
 //void is_mpdt_helper(const svBitVecVal* npc, const svBitVecVal* fpc) {
@@ -413,7 +458,7 @@ uint32_t inst_getter() {
   return inst_arr[inst_idx_cur];
 }
 
-extern "C" void is_mpdt(const svBitVecVal* npc, const svBitVecVal* fpc, svBit* mpdt_flag, svBitVecVal* fake_inst) {
+extern "C" void is_mpdt(const svBitVecVal* npc, const svBitVecVal* fpc, svBit* mpdt_flag, svBitVecVal* fake_inst, svBitVecVal* fake_addr, svBit* selector) {
   if(init == 1 && run_num == 1) {    
     if(d_cycle_cnt >= s_reader[cur_idx_s].cycle && cur_idx_s != s_read_ite && d_cycle_cnt >= mpdt_now.end_cycle) {
       //printf("CUR IDX: %d IDXPC: %x CALLPC: %x CYCLE: %d\n", cur_idx_s, s_reader[cur_idx_s].pc, *npc, d_cycle_cnt);  
@@ -431,18 +476,41 @@ extern "C" void is_mpdt(const svBitVecVal* npc, const svBitVecVal* fpc, svBit* m
       printf("\nSET START ADDR: %x START CYCLE: %d END ADDR: %x END CYCLE %d FAKE INST: %x\n", mpdt_now.start_addr, mpdt_now.start_cycle, mpdt_now.end_addr, mpdt_now.end_cycle, mpdt_now.fake_inst);
     }
     is_mpdt_helper();
-    if(mpdt_current_flag) {
-      mpdt_now.fake_inst  = inst_getter();
-      *mpdt_flag = (svBit)1;
-      *fake_inst = (svBitVecVal)mpdt_now.fake_inst;
+    if(n_not_f == false) {
+      if(mpdt_current_flag) {
+        mpdt_now.fake_inst  = inst_getter();
+        *mpdt_flag = (svBit)1;
+        *fake_inst = (svBitVecVal)mpdt_now.fake_inst;
+        *fake_addr = (svBitVecVal)0x000000000;
+        *selector  = (svBit)0;
+      }
+      else {
+        *mpdt_flag = (svBit)0;
+        *fake_inst = (svBitVecVal)0x00000000;
+        *fake_addr = (svBitVecVal)0x000000000;
+        *selector  = (svBit)0;
+      }
     }
-    else {
-      *mpdt_flag = (svBit)0;
-      *fake_inst = (svBitVecVal)0x00000000;
+    else if(n_not_f == true) {
+      if(mpdt_current_flag) {
+        mpdt_now.fake_inst  = inst_getter();
+        *mpdt_flag = (svBit)1;
+        *fake_inst = (svBitVecVal)0x00000000;
+        *fake_addr = (svBitVecVal)0x080000000;
+        *selector  = (svBit)1;
+      }
+      else {
+        *mpdt_flag = (svBit)0;
+        *fake_inst = (svBitVecVal)0x00000000;
+        *fake_addr = (svBitVecVal)0x000000000;
+        *selector  = (svBit)1;
+      }
     }
   }
   else if(init == 1 && run_num == 0) {
     *mpdt_flag = (svBit)0;
     *fake_inst = (svBitVecVal)0x00000000;
+    *fake_addr = (svBitVecVal)0x000000000;
+    *selector  = (svBit)0;
   }
 }

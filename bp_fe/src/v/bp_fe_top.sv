@@ -8,7 +8,7 @@
 
 import "DPI-C" function void pc_dumper(input bit[38:0] npc, input bit[38:0] fpc, input bit [31:0] dat, input bit val);
 
-import "DPI-C" function void is_mpdt(input bit[38:0] npc, input bit[38:0] fpc, output bit mpdt_flag, output bit[31:0] fake_inst);
+import "DPI-C" function void is_mpdt(input bit[38:0] npc, input bit[38:0] fpc, output bit mpdt_flag, output bit[31:0] fake_inst, output bit[38:0] fake_addr, output bit selector);
 
 module bp_fe_top
  import bp_fe_pkg::*;
@@ -75,8 +75,11 @@ module bp_fe_top
   assign cfg_bus_cast_i = cfg_bus_i;
 
   bit           mpdt_flag;
+  bit           selector;
   bit   [31:0]  fake_inst;
   logic [31:0]  fake_inst_l;
+  bit   [38:0]  fake_addr;
+  logic [38:0]  fake_addr_l;
   bit   [38:0]  npc_is;
   bit   [38:0]  fpc_is;
 
@@ -102,6 +105,7 @@ module bp_fe_top
   logic fetch_instr_v_li, fetch_exception_v_li, fetch_fail_v_li;
   bp_fe_branch_metadata_fwd_s fetch_br_metadata_fwd_lo;
   logic [vaddr_width_p-1:0] next_pc_lo;
+  logic [vaddr_width_p-1:0] next_pc_lo_orig;
   logic next_pc_yumi_li;
   logic ovr_lo;
   bp_fe_pc_gen
@@ -381,12 +385,20 @@ module bp_fe_top
   always_comb begin
     npc_is = next_pc_lo;
     fpc_is = fetch_pc_lo;
-    is_mpdt(npc_is, fpc_is, mpdt_flag, fake_inst);
+    is_mpdt(npc_is, fpc_is, mpdt_flag, fake_inst, fake_addr, selector);
     fake_inst_l = fake_inst;
+    fake_addr_l = fake_addr;
     if(mpdt_flag == 1'b1) begin
-      fetch_li = fake_inst_l;
+      //if(selector == 1'b0) begin
+        fetch_li    = fake_inst_l;
+        //next_pc_lo  = next_pc_lo_orig;
+      //end else if(selector == 1'b1) begin
+        //fetch_li    = fetch_li_orig;
+        //next_pc_lo  = fake_addr_l;
+      //end
     end else begin
-      fetch_li = fetch_li_orig;
+      fetch_li    = fetch_li_orig;
+      //next_pc_lo  = next_pc_lo_orig;
     end
     if (fe_exception_v)
       begin
