@@ -79,14 +79,31 @@ uint32_t d_cycle_cnt = 0;
 
 int mpdt_current_flag = 0,  prev_mpdt_cyc = 0;
 
-/* TODO: based on the icache code and fe code, it sends request and just returns the data later, might have to dump data also and then match fetch to cache and data coming back;
+uint32_t inst_arr[16] = {0};
+int inst_idx_max = 0, inst_idx_cur = 0;
+FILE* inst_reader;
 
-Looks like it will be easiest to just fuzz the address going to the cache.
-(construct new packet out?), it doesn't seem to be used in the icache. 
-Figure out which input into icache needs to be fuzzed to accurately fetch some other address. Maybe fuzz nextpc out from pc_gen? this way whatevr process takes care of sending icache the required data will take care of everything.
-
-Dump from pc_gen instead of FE top. this way we can more accurately match dumps and what's going on in the code
-*/
+void inst_f_reader() {
+  if(run_num == 1) {
+    cout << "READING INST FILE" << endl;
+    inst_reader = fopen("/home/ramper/projs/mpdt/tmp/faker/csr.txt", "r");
+    if(inst_reader != NULL) {
+      while(fscanf(inst_reader, "%x\n", &inst_arr[inst_idx_max]) != EOF) {
+        printf("read inst: %08x at idx %d", inst_arr[inst_idx_max], inst_idx_max);
+        ++inst_idx_max;
+      }
+      cout << "READ " << inst_idx_max << " LINES TOTAL FROM INST" << endl;
+    }
+    else {
+      cout << "INST FILE READ ERROR" << endl;
+      cout << "INST FILE READ ERROR" << endl;
+      cout << "INST FILE READ ERROR" << endl;
+      cout << "INST FILE READ ERROR" << endl;
+      cout << "INST FILE READ ERROR" << endl;
+      exit(1);
+    }
+  }
+}
 
 void struct_reader() {
   if(run_num == 1) {
@@ -177,11 +194,14 @@ extern "C" void dromajo_init(char* cfg_f_name, int hartid, int ncpus, int memory
   if (!hartid) {
     if (!init) {
       init = 1;
+      srand (time(NULL));
       cout << "Running with Dromajo cosimulation" << endl;
       pc_d = fopen("pc_dump.txt", "w");
       iC_d = fopen("iC_dump.txt", "w");
-      if(run_num == 1)
-       struct_reader();
+      if(run_num == 1) {
+        struct_reader();
+        inst_f_reader();
+      }
 
       finish = new vector<bool>(ncpus, false);
 
@@ -383,8 +403,13 @@ void is_mpdt_helper() {
   mpdt_current_flag = 0;
   if(d_cycle_cnt > mpdt_now.start_cycle && d_cycle_cnt < mpdt_now.end_cycle) {
     mpdt_current_flag = 1;
-    //printf("SET MPDT=1 AT CYCLE %d\n", d_cycle_cnt);
+    printf("SET MPDT=1 AT CYCLE %d\n", d_cycle_cnt);
   }
+}
+
+uint32_t inst_getter() {
+  inst_idx_cur = rand() % inst_idx_max - 1;
+  return inst_arr[inst_idx_cur];
 }
 
 extern "C" void is_mpdt(const svBitVecVal* npc, const svBitVecVal* fpc, svBit* mpdt_flag, svBitVecVal* fake_inst) {
@@ -396,7 +421,7 @@ extern "C" void is_mpdt(const svBitVecVal* npc, const svBitVecVal* fpc, svBit* m
       //printf("AFTER CALL: CUR IDX: %d IDXPC: %x CALLPC: %x CYCLE: %d\n", cur_idx_s, s_reader[cur_idx_s].pc, *npc, d_cycle_cnt);
       mpdt_now.start_addr = s_reader[cur_idx_s-1].pc;
       mpdt_now.end_addr   = s_reader[cur_idx_s].pc;
-      mpdt_now.fake_inst  = 0x00e00093;
+      mpdt_now.fake_inst  = inst_getter();
       set_mpdt_holder_cycles(s_reader[cur_idx_s-1].cycle - 6);
       printf("\nSET START ADDR: %x START CYCLE: %d END ADDR: %x END CYCLE %d FAKE INST: %x\n", mpdt_now.start_addr, mpdt_now.start_cycle, mpdt_now.end_addr, mpdt_now.end_cycle, mpdt_now.fake_inst);
     }
