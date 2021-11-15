@@ -86,12 +86,13 @@ FILE* inst_reader;
 void inst_f_reader() {
   if(run_num == 1) {
     cout << "READING INST FILE" << endl;
-    inst_reader = fopen("/home/ramper/projs/mpdt/tmp/faker/csr.txt", "r");
+    inst_reader = fopen("/home/ramper/projs/mpdt/tmp/faker/fen.txt", "r");
     if(inst_reader != NULL) {
       while(fscanf(inst_reader, "%x\n", &inst_arr[inst_idx_max]) != EOF) {
         printf("read inst: %08x at idx %d", inst_arr[inst_idx_max], inst_idx_max);
         ++inst_idx_max;
       }
+      --inst_idx_max;
       cout << "READ " << inst_idx_max << " LINES TOTAL FROM INST" << endl;
     }
     else {
@@ -409,6 +410,7 @@ void is_mpdt_helper() {
 
 uint32_t inst_getter() {
   inst_idx_cur = rand() % inst_idx_max - 1;
+  printf("SET RAND INDEX TO: %d\n", inst_idx_cur);
   return inst_arr[inst_idx_cur];
 }
 
@@ -421,12 +423,17 @@ extern "C" void is_mpdt(const svBitVecVal* npc, const svBitVecVal* fpc, svBit* m
       //printf("AFTER CALL: CUR IDX: %d IDXPC: %x CALLPC: %x CYCLE: %d\n", cur_idx_s, s_reader[cur_idx_s].pc, *npc, d_cycle_cnt);
       mpdt_now.start_addr = s_reader[cur_idx_s-1].pc;
       mpdt_now.end_addr   = s_reader[cur_idx_s].pc;
-      mpdt_now.fake_inst  = inst_getter();
+      
+      //This can be done here or every time we detect mpdt below
+      //mpdt_now.fake_inst  = inst_getter();
+      
+      
       set_mpdt_holder_cycles(s_reader[cur_idx_s-1].cycle - 6);
       printf("\nSET START ADDR: %x START CYCLE: %d END ADDR: %x END CYCLE %d FAKE INST: %x\n", mpdt_now.start_addr, mpdt_now.start_cycle, mpdt_now.end_addr, mpdt_now.end_cycle, mpdt_now.fake_inst);
     }
     is_mpdt_helper();
     if(mpdt_current_flag) {
+      mpdt_now.fake_inst  = inst_getter();
       *mpdt_flag = (svBit)1;
       *fake_inst = (svBitVecVal)mpdt_now.fake_inst;
     }
