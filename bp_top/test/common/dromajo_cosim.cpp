@@ -92,7 +92,6 @@ void inst_f_reader() {
         printf("read inst: %08x at idx %d", inst_arr[inst_idx_max], inst_idx_max);
         ++inst_idx_max;
       }
-      --inst_idx_max;
       cout << "READ " << inst_idx_max << " LINES TOTAL FROM INST" << endl;
     }
     else {
@@ -409,8 +408,8 @@ void is_mpdt_helper() {
 }
 
 uint32_t inst_getter() {
-  inst_idx_cur = rand() % inst_idx_max - 1;
-  printf("SET RAND INDEX TO: %d\n", inst_idx_cur);
+  inst_idx_cur = rand() % inst_idx_max;
+  //printf("SET RAND INDEX TO: %d\n", inst_idx_cur);
   return inst_arr[inst_idx_cur];
 }
 
