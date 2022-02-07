@@ -88,7 +88,8 @@ bool n_not_f = false;
 void inst_f_reader() {
   if(run_num == 1) {
     cout << "READING INST FILE" << endl;
-    inst_reader = fopen("/home/ramper/projs/mpdt/tmp/faker/fen.txt", "r");
+    inst_reader = fopen("/mada/users/rkjayara/projs/mpdt/tmp/faker/ret.txt", "r");
+    //inst_reader = fopen("/home/ramper/projs/mpdt/tmp/faker/fen.txt", "r");
     if(inst_reader != NULL) {
       while(fscanf(inst_reader, "%x\n", &inst_arr[inst_idx_max]) != EOF) {
         printf("read inst: %08x at idx %d", inst_arr[inst_idx_max], inst_idx_max);
@@ -111,8 +112,8 @@ void struct_reader() {
   if(run_num == 1) {
     cout << "READING FILE START !!!!!!!!!!!!!!" <<  endl;
 
-    //mpdt_c_reader = fopen("/mada/users/rkjayara/projs/mpdt/tmp/runs/0/commit_0.trace", "r");
-    mpdt_c_reader = fopen("/home/ramper/projs/mpdt/tmp/runs/0/commit_0.trace", "r");
+    mpdt_c_reader = fopen("/mada/users/rkjayara/projs/mpdt/tmp/runs/0/commit_0.trace", "r");
+    //mpdt_c_reader = fopen("/home/ramper/projs/mpdt/tmp/runs/0/commit_0.trace", "r");
     if(mpdt_c_reader != NULL) {
       cout << "READING FROM run0 commit_0.trace FILE" << endl;
       while(fscanf(mpdt_c_reader, "%010d %08x %016x %08x %016x %08x %016x\n", &c_reader[c_read_ite].cycle, &c_reader[c_read_ite].hartid, &c_reader[c_read_ite].pc, &c_reader[c_read_ite].opcode, &c_reader[c_read_ite].inst_cnt, &c_reader[c_read_ite].rd_addr, &c_reader[c_read_ite].data) != EOF) {
@@ -130,8 +131,8 @@ void struct_reader() {
       exit(1);
     }
 
-    //mpdt_s_reader = fopen("/mada/users/rkjayara/projs/mpdt/tmp/runs/0/stall_0.trace", "r");
-    mpdt_s_reader = fopen("/home/ramper/projs/mpdt/tmp/runs/0/stall_0.trace", "r");
+    mpdt_s_reader = fopen("/mada/users/rkjayara/projs/mpdt/tmp/runs/0/stall_0.trace", "r");
+    //mpdt_s_reader = fopen("/home/ramper/projs/mpdt/tmp/runs/0/stall_0.trace", "r");
     if(mpdt_s_reader !=NULL) {
       cout << "READING FROM run0 stall_0.trace FILE" << endl;
       while(fscanf(mpdt_s_reader, "%010d,%04x,%04x,%016x,%04d\n", &s_reader[s_read_ite].cycle, &s_reader[s_read_ite].x, &s_reader[s_read_ite].y, &s_reader[s_read_ite].pc, &s_reader[s_read_ite].operation) != EOF) {
@@ -149,8 +150,8 @@ void struct_reader() {
       exit(1);
     }
 
-    //mpdt_p_reader = fopen("/mada/users/rkjayara/projs/mpdt/tmp/runs/0/pc_dump.txt", "r");
-    mpdt_p_reader = fopen("/home/ramper/projs/mpdt/tmp/runs/0/pc_dump.txt", "r");
+    mpdt_p_reader = fopen("/mada/users/rkjayara/projs/mpdt/tmp/runs/0/pc_dump.txt", "r");
+    //mpdt_p_reader = fopen("/home/ramper/projs/mpdt/tmp/runs/0/pc_dump.txt", "r");
     if(mpdt_p_reader != NULL) {
       cout << "READING FROM run0 pc_dump.txt FILE" << endl;
       while(fscanf(mpdt_p_reader, "%d %x %x %08x %x %1x\n", &p_reader[p_read_ite]. cycle, &p_reader[p_read_ite].npc, &p_reader[p_read_ite].fpc, &p_reader[p_read_ite].dat, &p_reader[p_read_ite].val, &p_reader[p_read_ite].rn) != EOF) {
@@ -168,8 +169,8 @@ void struct_reader() {
       exit(1);
     }
 
-    //mpdt_i_reader = fopen("/mada/users/rkjayara/projs/mpdt/tmp/runs/0/iC_dump.txt", "r");
-    mpdt_i_reader = fopen("/home/ramper/projs/mpdt/tmp/runs/0/iC_dump.txt", "r");
+    mpdt_i_reader = fopen("/mada/users/rkjayara/projs/mpdt/tmp/runs/0/iC_dump.txt", "r");
+    //mpdt_i_reader = fopen("/home/ramper/projs/mpdt/tmp/runs/0/iC_dump.txt", "r");
     if(mpdt_i_reader != NULL) {
       cout << "READING FROM run0 iC_dump.txt FILE" << endl;
       while(fscanf(mpdt_i_reader, "%d %x %08x %x %1x\n", &i_reader[i_read_ite].cycle, &i_reader[i_read_ite].vaddr, &i_reader[i_read_ite].data, &i_reader[i_read_ite].val, &i_reader[i_read_ite].rn) != EOF) {
@@ -469,7 +470,7 @@ extern "C" void is_mpdt(const svBitVecVal* npc, const svBitVecVal* fpc, svBit* m
       mpdt_now.end_addr   = s_reader[cur_idx_s].pc;
       
       //This can be done here or every time we detect mpdt below
-      //mpdt_now.fake_inst  = inst_getter();
+      mpdt_now.fake_inst  = inst_getter();
       
       
       set_mpdt_holder_cycles(s_reader[cur_idx_s-1].cycle - 6);
@@ -478,7 +479,7 @@ extern "C" void is_mpdt(const svBitVecVal* npc, const svBitVecVal* fpc, svBit* m
     is_mpdt_helper();
     if(n_not_f == false) {
       if(mpdt_current_flag) {
-        mpdt_now.fake_inst  = inst_getter();
+        //mpdt_now.fake_inst  = inst_getter();
         *mpdt_flag = (svBit)1;
         *fake_inst = (svBitVecVal)mpdt_now.fake_inst;
         *fake_addr = (svBitVecVal)0x000000000;
@@ -493,7 +494,7 @@ extern "C" void is_mpdt(const svBitVecVal* npc, const svBitVecVal* fpc, svBit* m
     }
     else if(n_not_f == true) {
       if(mpdt_current_flag) {
-        mpdt_now.fake_inst  = inst_getter();
+        //mpdt_now.fake_inst  = inst_getter();
         *mpdt_flag = (svBit)1;
         *fake_inst = (svBitVecVal)0x00000000;
         *fake_addr = (svBitVecVal)0x080000000;

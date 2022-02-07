@@ -8,13 +8,16 @@ import signal
 runner = 'time make -j -C bp_top/syn build_dump.sc sim_dump.sc COSIM_P=1 CMT_TRACE_P=1 PC_PROFILE_P=1 BRANCH_PROFILE_P=1 CORE_PROFILE_P=1 NPC_TRACE_P=1 DRAM_TRACE_P=1 '
 cleaner = 'make -C bp_top/syn clean.sc'
 #testbin = '/mada/users/rkjayara/projs/mpdt/ariane/testbin/'
-testbin = '/home/ramper/projs/mpdt/tmp/testbin/'
-runs = '/home/ramper/projs/mpdt/tmp/runs/'
+#testbin = '/home/ramper/projs/mpdt/tmp/testbin/'
+testbin = '/mada/users/rkjayara/projs/mpdt/tmp/testbin/'
+#runs = '/home/ramper/projs/mpdt/tmp/runs/'
+runs = '/mada/users/rkjayara/projs/mpdt/tmp/runs/'
 testsuite = 'SUITE=riscv-tests '
 rn0 = 'RN=0 '
 rn1 = 'RN=1 '
 prog = 'PROG='
-cppath = '/home/ramper/projs/mpdt/black-parrot-sim/rtl/bp_top/syn/results/verilator/bp_tethered.e_bp_default_cfg.none.sim.riscv-tests.'
+#cppath = '/home/ramper/projs/mpdt/black-parrot-sim/rtl/bp_top/syn/results/verilator/bp_tethered.e_bp_default_cfg.none.sim.riscv-tests.'
+cppath = '/mada/users/rkjayara/projs/mpdt/black-parrot-sim/rtl/bp_top/syn/results/verilator/bp_tethered.e_bp_default_cfg.none.sim.riscv-tests.'
 counter = 0
 
 print("CLEANING")
