@@ -85,8 +85,8 @@ module bp_cacc_vdp
   
      ,.ptag_v_i(dcache_pkt_v)
      ,.ptag_i(dcache_ptag)
-     ,.uncached_mode_i('0)
-     ,.nonspec_mode_i('0)
+     ,.uncached_mode_i('2)
+     ,.nonspec_mode_i('2)
   
      ,.uncached_o(dcache_uncached)
      ,.nonidem_o()
