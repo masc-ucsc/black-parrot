@@ -12,7 +12,7 @@ using namespace std;
 dromajo_cosim_state_t* dromajo_pointer;
 vector<bool>* finish;
 char init = 0;
-int run_num = -1;
+int run_num = 0;
 FILE* mpdt_c_reader;
 FILE* mpdt_s_reader;
 FILE* mpdt_p_reader;
@@ -294,6 +294,9 @@ extern "C" void dromajo_printer() {
   if(counter % 1000 == 0)
     cout << "RUN: " << run_num << " Counter at: " << counter << " cycle at: " << d_cycle_cnt << endl;
   counter++;
+
+  if(counter > 250000)
+    exit(0);
 }
 
 extern "C" void set_run_num(svBit run_num_get) {
