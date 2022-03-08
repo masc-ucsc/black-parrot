@@ -88,7 +88,7 @@ bool n_not_f = false;
 void inst_f_reader() {
   if(run_num == 1) {
     cout << "READING INST FILE" << endl;
-    inst_reader = fopen("/mada/users/rkjayara/projs/mpdt/tmp/faker/ret.txt", "r");
+    inst_reader = fopen("/mada/users/rkjayara/projs/mpdt/tmp/faker/csr.txt", "r");
     //inst_reader = fopen("/home/ramper/projs/mpdt/tmp/faker/fen.txt", "r");
     if(inst_reader != NULL) {
       while(fscanf(inst_reader, "%x\n", &inst_arr[inst_idx_max]) != EOF) {
@@ -112,7 +112,7 @@ void struct_reader() {
   if(run_num == 1) {
     cout << "READING FILE START !!!!!!!!!!!!!!" <<  endl;
 
-    mpdt_c_reader = fopen("/mada/users/rkjayara/projs/mpdt/tmp/runs/0/commit_0.trace", "r");
+    mpdt_c_reader = fopen("/mada/users/rkjayara/projs/mpdt/spec_d/new/0/commit_0.trace", "r");
     //mpdt_c_reader = fopen("/home/ramper/projs/mpdt/tmp/runs/0/commit_0.trace", "r");
     if(mpdt_c_reader != NULL) {
       cout << "READING FROM run0 commit_0.trace FILE" << endl;
@@ -131,7 +131,7 @@ void struct_reader() {
       exit(1);
     }
 
-    mpdt_s_reader = fopen("/mada/users/rkjayara/projs/mpdt/tmp/runs/0/stall_0.trace", "r");
+    mpdt_s_reader = fopen("/mada/users/rkjayara/projs/mpdt/spec_d/new/0/stall_0.trace", "r");
     //mpdt_s_reader = fopen("/home/ramper/projs/mpdt/tmp/runs/0/stall_0.trace", "r");
     if(mpdt_s_reader !=NULL) {
       cout << "READING FROM run0 stall_0.trace FILE" << endl;
@@ -150,7 +150,7 @@ void struct_reader() {
       exit(1);
     }
 
-    mpdt_p_reader = fopen("/mada/users/rkjayara/projs/mpdt/tmp/runs/0/pc_dump.txt", "r");
+    mpdt_p_reader = fopen("/mada/users/rkjayara/projs/mpdt/spec_d/new/0/pc_dump.txt", "r");
     //mpdt_p_reader = fopen("/home/ramper/projs/mpdt/tmp/runs/0/pc_dump.txt", "r");
     if(mpdt_p_reader != NULL) {
       cout << "READING FROM run0 pc_dump.txt FILE" << endl;
@@ -169,7 +169,7 @@ void struct_reader() {
       exit(1);
     }
 
-    mpdt_i_reader = fopen("/mada/users/rkjayara/projs/mpdt/tmp/runs/0/iC_dump.txt", "r");
+    mpdt_i_reader = fopen("/mada/users/rkjayara/projs/mpdt/spec_d/new/0/iC_dump.txt", "r");
     //mpdt_i_reader = fopen("/home/ramper/projs/mpdt/tmp/runs/0/iC_dump.txt", "r");
     if(mpdt_i_reader != NULL) {
       cout << "READING FROM run0 iC_dump.txt FILE" << endl;
@@ -362,6 +362,11 @@ void next_mispredict()
 
 void set_mpdt_holder_cycles(uint32_t target_cycle)
 {
+  // putting entire thing in a 50000 cycle delay to insert
+  // to wait for NBF loader 
+
+  if(counter > 50000) {
+
   if(n_not_f == false) {
     //printf("SET_MPDT: Got target cycle: %d\n", target_cycle);
     int cur_idx = (int)target_cycle;
@@ -445,6 +450,8 @@ void set_mpdt_holder_cycles(uint32_t target_cycle)
       exit(1);
     }
   }
+
+  } //done for NBF bypass
 }
 
 //void is_mpdt_helper(const svBitVecVal* npc, const svBitVecVal* fpc) {
