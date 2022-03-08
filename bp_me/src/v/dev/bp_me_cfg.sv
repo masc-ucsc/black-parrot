@@ -87,9 +87,9 @@ module bp_me_cfg
     if (reset_i)
       begin
         freeze_r            <= 1'b1;
-        icache_mode_r       <= e_lce_mode_uncached;
-        dcache_mode_r       <= e_lce_mode_uncached;
-        cce_mode_r          <= e_cce_mode_uncached;
+        icache_mode_r       <= e_lce_mode_normal;
+        dcache_mode_r       <= e_lce_mode_normal;
+        cce_mode_r          <= e_cce_mode_normal;
         hio_mask_r          <= '0;
       end
     else

@@ -68,6 +68,15 @@ typedef struct mpdt_holder_t {
   uint32_t                                fake_inst;
 }mpdt_holder_t;
 
+typedef enum 
+{
+  d_e_lce_mode_uncached = 0
+  ,d_e_lce_mode_normal  = 1
+  ,d_e_lce_mode_nonspec = 2
+} d_bp_lce_mode_e;
+
+d_bp_lce_mode_e spec_mode_select = d_e_lce_mode_nonspec;
+
 commit_reader_t c_reader[5000000] = {{0}};
 stall_reader_t  s_reader[5000000] = {{0}};
 fepc_reader_t   p_reader[5000000] = {{0}};
@@ -302,15 +311,15 @@ extern "C" void dromajo_printer() {
 extern "C" void set_run_num(svBit run_num_get) {
   if(run_num_get == (svBit)1) {
     run_num = 1;
-    cout << "IN DROMAJO SET RUN NUMBER TO: " << run_num << endl;
-    cout << "IN DROMAJO SET RUN NUMBER TO: " << run_num << endl;
-    cout << "IN DROMAJO SET RUN NUMBER TO: " << run_num << endl;
+    cout << "IN DROMAJO SET RUN NUMBER TO: " << run_num << " AND SPEC_MODE: " << spec_mode_select << endl;
+    cout << "IN DROMAJO SET RUN NUMBER TO: " << run_num << " AND SPEC_MODE: " << spec_mode_select << endl;
+    cout << "IN DROMAJO SET RUN NUMBER TO: " << run_num << " AND SPEC_MODE: " << spec_mode_select << endl;
   }
   else {
     run_num = 0;
-    cout << "IN DROMAJO SET RUN NUMBER TO: " << run_num << endl;
-    cout << "IN DROMAJO SET RUN NUMBER TO: " << run_num << endl;
-    cout << "IN DROMAJO SET RUN NUMBER TO: " << run_num << endl;
+    cout << "IN DROMAJO SET RUN NUMBER TO: " << run_num << " AND SPEC_MODE: " << spec_mode_select << endl;
+    cout << "IN DROMAJO SET RUN NUMBER TO: " << run_num << " AND SPEC_MODE: " << spec_mode_select << endl;
+    cout << "IN DROMAJO SET RUN NUMBER TO: " << run_num << " AND SPEC_MODE: " << spec_mode_select << endl;
   }
 }
 
