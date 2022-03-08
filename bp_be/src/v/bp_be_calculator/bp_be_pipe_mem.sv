@@ -180,8 +180,8 @@ module bp_be_pipe_mem
      ,.priv_mode_i(trans_info.priv_mode)
      ,.sum_i(trans_info.mstatus_sum)
      ,.trans_en_i(trans_info.translation_en)
-     ,.uncached_mode_i((cfg_bus.dcache_mode == e_lce_mode_uncached))
-     ,.nonspec_mode_i((cfg_bus.dcache_mode == e_lce_mode_nonspec))
+     ,.uncached_mode_i((cfg_bus.dcache_mode == e_lce_mode_normal))
+     ,.nonspec_mode_i((cfg_bus.dcache_mode == e_lce_mode_normal))
      ,.hio_mask_i(cfg_bus.hio_mask)
 
      ,.w_v_i(dtlb_w_v)
