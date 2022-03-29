@@ -10,7 +10,8 @@ cleaner = 'make -C bp_top/syn clean.sc'
 #testbin = '/mada/users/rkjayara/projs/mpdt/ariane/testbin/'
 #testbin = '/home/ramper/projs/mpdt/tmp/testbin/'
 #testbin = '/mada/users/rkjayara/projs/mpdt/tmp/testbin/'
-testbin = '/soe/rkjayara/projs/mpdt/spec_d/tests/'
+testbin  = '/soe/rkjayara/projs/mpdt/tmp/bp_testbin'
+#testbin = '/soe/rkjayara/projs/mpdt/spec_d/tests/'
 #runs = '/home/ramper/projs/mpdt/tmp/runs/'
 runs = '/mada/users/rkjayara/projs/mpdt/spec_d/new/'
 testsuite = 'SUITE=riscv-tests '
@@ -50,6 +51,7 @@ for isa_test in os.listdir(testbin):
     print("RUNNING 0")
     out_file0 = path0 + 'output.txt'
     f_out0 = open(out_file0, 'w')
+    print("cmd0: ", cmd0)
     p = subprocess.Popen(cmd0, stdout = f_out0, stderr = f_out0, shell=True, universal_newlines=True, preexec_fn=os.setsid)
     time_started = time.time()
     try:
@@ -83,5 +85,5 @@ for isa_test in os.listdir(testbin):
     print("Completed running : " + isa_test)
     counter = counter + 1
     print("counter: " + str(counter))
-#    if counter == 2:
-#        break
+    if counter == 2:
+        break

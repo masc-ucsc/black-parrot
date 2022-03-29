@@ -371,10 +371,10 @@ void next_mispredict()
 
 void set_mpdt_holder_cycles(uint32_t target_cycle)
 {
-  // putting entire thing in a 50000 cycle delay to insert
+  // putting entire thing in a 42000 cycle delay to insert
   // to wait for NBF loader 
 
-  if(counter > 50000) {
+  if(counter > 42000) {
 
   if(n_not_f == false) {
     //printf("SET_MPDT: Got target cycle: %d\n", target_cycle);
@@ -462,6 +462,10 @@ void set_mpdt_holder_cycles(uint32_t target_cycle)
 
   } //done for NBF bypass
 }
+
+//*********************************************************************]
+//change to not insert before NBF loader done. 
+//*********************************************************************]
 
 //void is_mpdt_helper(const svBitVecVal* npc, const svBitVecVal* fpc) {
 void is_mpdt_helper() {
