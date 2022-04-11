@@ -357,9 +357,9 @@ extern "C" void nbf_done(const svBit val)
 void next_mispredict()
 {
   //cout << std::hex << "CALLED NEXT PC IDX " << cur_idx_s << " PrevPC: " << prev_pc_s << endl;
-  uint64_t found_pc = 0;
-  if (init == 1 && run_num == 1) {
-    prev_pc_s = s_reader [cur_idx_s].pc;
+  //uint64_t found_pc = 0;
+  if (init == 1 && run_num == 1 && nbf_complete ==1) {
+    /*prev_pc_s = s_reader [cur_idx_s].pc;
     for(; cur_idx_s < s_read_ite ; ++cur_idx_s) {
       if(s_reader[cur_idx_s].operation == 13 && (uint64_t)s_reader[cur_idx_s].pc > 0x80000250) 
         if(s_reader[cur_idx_s].pc != prev_pc_s) {
@@ -372,6 +372,20 @@ void next_mispredict()
       --cur_idx_s;
       if(s_reader[cur_idx_s - 1].pc != found_pc && s_reader[cur_idx_s - 1].operation == 0) {
         break;
+      }
+    }*/
+    if (cur_idx_s == 0){
+      for(; cur_idx_s < s_read_ite; ++cur_idx_s){
+        if(s_reader[cur_idx_s].cycle == d_cycle_cnt)
+          break;
+      }
+      while(s_reader[cur_idx_s].operation != 13){
+        ++cur_idx_s;
+      }
+    } else {
+      prev_pc_s = s_reader[cur_idx_s].pc;
+      while(s_reader[cur_idx_s].operation != 13){
+        ++cur_idx_s;
       }
     }
   }
@@ -494,17 +508,22 @@ extern "C" void is_mpdt(const svBitVecVal* npc, const svBitVecVal* fpc, svBit* m
   if(init == 1 && run_num == 1 && nbf_complete ==1) {    
     if(d_cycle_cnt >= s_reader[cur_idx_s].cycle && cur_idx_s != s_read_ite && d_cycle_cnt >= mpdt_now.end_cycle) {
       //printf("CUR IDX: %d IDXPC: %x CALLPC: %x CYCLE: %d\n", cur_idx_s, s_reader[cur_idx_s].pc, *npc, d_cycle_cnt);  
-      prev_mpdt_cyc = mpdt_now.end_cycle;    
+      //prev_mpdt_cyc = mpdt_now.end_cycle;    
       next_mispredict();
       //printf("AFTER CALL: CUR IDX: %d IDXPC: %x CALLPC: %x CYCLE: %d\n", cur_idx_s, s_reader[cur_idx_s].pc, *npc, d_cycle_cnt);
-      mpdt_now.start_addr = s_reader[cur_idx_s-1].pc;
+      mpdt_now.start_addr = s_reader[cur_idx_s].pc;
       mpdt_now.end_addr   = s_reader[cur_idx_s].pc;
       
       //This can be done here or every time we detect mpdt below
       mpdt_now.fake_inst  = inst_getter();
       
+      mpdt_now.start_cycle = s_reader[cur_idx_s].cycle;    
+      while(s_reader[cur_idx_s].operation == 13){
+        ++cur_idx_s;
+      }
+      mpdt_now.end_cycle = s_reader[cur_idx_s - 1].cycle;
       
-      set_mpdt_holder_cycles(s_reader[cur_idx_s-1].cycle - 6);
+      //set_mpdt_holder_cycles(s_reader[cur_idx_s-1].cycle - 6);
       printf("\nSET START ADDR: %x START CYCLE: %d END ADDR: %x END CYCLE %d FAKE INST: %x\n", mpdt_now.start_addr, mpdt_now.start_cycle, mpdt_now.end_addr, mpdt_now.end_cycle, mpdt_now.fake_inst);
     }
     is_mpdt_helper();
