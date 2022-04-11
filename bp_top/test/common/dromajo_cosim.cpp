@@ -350,7 +350,7 @@ extern "C" void iCache_dump(const svBitVecVal* vaddr, const svBitVecVal* data_o,
 
 extern "C" void nbf_done(const svBit val)
 {
-  printf("GOT NBF COMPLETE FROM DUT\n");
+  printf("GOT NBF COMPLETE FROM DUT AT CYCLE %d\n", d_cycle_cnt);
   nbf_complete = 1;
 }
 
@@ -491,7 +491,7 @@ uint32_t inst_getter() {
 }
 
 extern "C" void is_mpdt(const svBitVecVal* npc, const svBitVecVal* fpc, svBit* mpdt_flag, svBitVecVal* fake_inst, svBitVecVal* fake_addr, svBit* selector) {
-  if(init == 1 && run_num == 1) {    
+  if(init == 1 && run_num == 1 && nbf_complete ==1) {    
     if(d_cycle_cnt >= s_reader[cur_idx_s].cycle && cur_idx_s != s_read_ite && d_cycle_cnt >= mpdt_now.end_cycle) {
       //printf("CUR IDX: %d IDXPC: %x CALLPC: %x CYCLE: %d\n", cur_idx_s, s_reader[cur_idx_s].pc, *npc, d_cycle_cnt);  
       prev_mpdt_cyc = mpdt_now.end_cycle;    
