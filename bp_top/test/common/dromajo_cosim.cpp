@@ -511,12 +511,18 @@ extern "C" void is_mpdt(const svBitVecVal* npc, const svBitVecVal* fpc, svBit* m
       //prev_mpdt_cyc = mpdt_now.end_cycle;    
       next_mispredict();
       //printf("AFTER CALL: CUR IDX: %d IDXPC: %x CALLPC: %x CYCLE: %d\n", cur_idx_s, s_reader[cur_idx_s].pc, *npc, d_cycle_cnt);
+      
+      //PC INDICATED HERE IS CORRECT, must get the worng fetch pc from pc_dump and corresponding 
+      //cycles of fetch and insert there.
+      //********FIX ME************//
       mpdt_now.start_addr = s_reader[cur_idx_s].pc;
       mpdt_now.end_addr   = s_reader[cur_idx_s].pc;
       
       //This can be done here or every time we detect mpdt below
       mpdt_now.fake_inst  = inst_getter();
-      
+      //Cycle here is based on stall, not based on pc_dump
+      //change to match incorrect fetch from pc_dump based on commit and stall and pc_dump
+      //********FIX ME************//
       mpdt_now.start_cycle = s_reader[cur_idx_s].cycle;    
       while(s_reader[cur_idx_s].operation == 13){
         ++cur_idx_s;
