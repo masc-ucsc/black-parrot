@@ -87,5 +87,5 @@ for isa_test in os.listdir(testbin):
     print("Completed running : " + isa_test)
     counter = counter + 1
     print("counter: " + str(counter))
-    if counter == 3:
-        break
+    #if counter == 3:
+        #break

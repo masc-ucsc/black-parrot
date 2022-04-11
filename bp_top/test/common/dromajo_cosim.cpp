@@ -75,7 +75,7 @@ typedef enum
   ,d_e_lce_mode_nonspec = 2
 } d_bp_lce_mode_e;
 
-d_bp_lce_mode_e spec_mode_select = d_e_lce_mode_nonspec;
+d_bp_lce_mode_e spec_mode_select = d_e_lce_mode_uncached;
 
 commit_reader_t c_reader[5000000] = {{0}};
 stall_reader_t  s_reader[5000000] = {{0}};
