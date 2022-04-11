@@ -6,6 +6,8 @@
 `include "bp_common_defines.svh"
 `include "bp_top_defines.svh"
 
+import "DPI-C" function void nbf_done(input bit val);
+
 module bp_nonsynth_nbf_loader
  import bp_common_pkg::*;
  import bp_be_pkg::*;
@@ -160,8 +162,10 @@ module bp_nonsynth_nbf_loader
   //synopsys translate_off
   always_ff @(negedge clk_i)
     begin
-      if (state_r != e_done && state_n == e_done)
+      if (state_r != e_done && state_n == e_done) begin
         $display("NBF loader done!");
+        nbf_done(1'b1);
+      end
       assert (~read_return || read_data_r == io_resp.data[0+:dword_width_gp])
         else $error("Validation mismatch: addr: %d %d %d", io_resp.header.addr, io_resp.data, read_data_r);
     end

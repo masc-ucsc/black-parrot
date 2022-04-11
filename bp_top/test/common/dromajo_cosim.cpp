@@ -84,6 +84,8 @@ iCache_reader_t i_reader[5000000] = {{0}};
 
 mpdt_holder_t   mpdt_now = {0};
 
+int nbf_complete = 0;
+
 uint32_t d_cycle_cnt = 0;
 
 int mpdt_current_flag = 0,  prev_mpdt_cyc = 0;
@@ -346,6 +348,12 @@ extern "C" void iCache_dump(const svBitVecVal* vaddr, const svBitVecVal* data_o,
     fprintf(iC_d, "%d %x %08x %x %1x\n", d_cycle_cnt, (uint64_t)*vaddr, (uint64_t)*data_o, val, run_num);
 }
 
+extern "C" void nbf_done(const svBit val)
+{
+  printf("GOT NBF COMPLETE FROM DUT\n");
+  nbf_complete = 1;
+}
+
 void next_mispredict()
 {
   //cout << std::hex << "CALLED NEXT PC IDX " << cur_idx_s << " PrevPC: " << prev_pc_s << endl;
@@ -371,10 +379,10 @@ void next_mispredict()
 
 void set_mpdt_holder_cycles(uint32_t target_cycle)
 {
-  // putting entire thing in a 42000 cycle delay to insert
-  // to wait for NBF loader 
+  //wait till nbf complete
+  //wait till nbf_done is called from verilog
 
-  if(counter > 42000) {
+  if(nbf_complete == 1) {
 
   if(n_not_f == false) {
     //printf("SET_MPDT: Got target cycle: %d\n", target_cycle);
