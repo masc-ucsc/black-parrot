@@ -249,8 +249,8 @@ module bp_fe_top
      ,.trans_en_i(shadow_translation_en_r)
      // Supervisor use of user memory is always disabled for immu
      ,.sum_i('0)
-     ,.uncached_mode_i((cfg_bus_cast_i.icache_mode == e_lce_mode_normal))
-     ,.nonspec_mode_i((cfg_bus_cast_i.icache_mode == e_lce_mode_normal))
+     ,.uncached_mode_i((cfg_bus_cast_i.icache_mode == e_lce_mode_uncached))
+     ,.nonspec_mode_i((cfg_bus_cast_i.icache_mode == e_lce_mode_uncached))
      ,.hio_mask_i(cfg_bus_cast_i.hio_mask)
 
      ,.w_v_i(itlb_fill_v)

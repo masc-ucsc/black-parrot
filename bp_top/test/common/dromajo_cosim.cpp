@@ -121,7 +121,7 @@ void struct_reader() {
   if(run_num == 1) {
     cout << "READING FILE START !!!!!!!!!!!!!!" <<  endl;
 
-    mpdt_c_reader = fopen("/mada/users/rkjayara/projs/mpdt/spec_d/new/0/commit_0.trace", "r");
+    mpdt_c_reader = fopen("/soe/rkjayara/projs/mpdt/spec_d/new/0/commit_0.trace", "r");
     //mpdt_c_reader = fopen("/home/ramper/projs/mpdt/tmp/runs/0/commit_0.trace", "r");
     if(mpdt_c_reader != NULL) {
       cout << "READING FROM run0 commit_0.trace FILE" << endl;
@@ -140,7 +140,7 @@ void struct_reader() {
       exit(1);
     }
 
-    mpdt_s_reader = fopen("/mada/users/rkjayara/projs/mpdt/spec_d/new/0/stall_0.trace", "r");
+    mpdt_s_reader = fopen("/soe/rkjayara/projs/mpdt/spec_d/new/0/stall_0.trace", "r");
     //mpdt_s_reader = fopen("/home/ramper/projs/mpdt/tmp/runs/0/stall_0.trace", "r");
     if(mpdt_s_reader !=NULL) {
       cout << "READING FROM run0 stall_0.trace FILE" << endl;
@@ -159,7 +159,7 @@ void struct_reader() {
       exit(1);
     }
 
-    mpdt_p_reader = fopen("/mada/users/rkjayara/projs/mpdt/spec_d/new/0/pc_dump.txt", "r");
+    mpdt_p_reader = fopen("/soe/rkjayara/projs/mpdt/spec_d/new/0/pc_dump.txt", "r");
     //mpdt_p_reader = fopen("/home/ramper/projs/mpdt/tmp/runs/0/pc_dump.txt", "r");
     if(mpdt_p_reader != NULL) {
       cout << "READING FROM run0 pc_dump.txt FILE" << endl;
@@ -178,7 +178,7 @@ void struct_reader() {
       exit(1);
     }
 
-    mpdt_i_reader = fopen("/mada/users/rkjayara/projs/mpdt/spec_d/new/0/iC_dump.txt", "r");
+    mpdt_i_reader = fopen("/soe/rkjayara/projs/mpdt/spec_d/new/0/iC_dump.txt", "r");
     //mpdt_i_reader = fopen("/home/ramper/projs/mpdt/tmp/runs/0/iC_dump.txt", "r");
     if(mpdt_i_reader != NULL) {
       cout << "READING FROM run0 iC_dump.txt FILE" << endl;

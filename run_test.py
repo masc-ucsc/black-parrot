@@ -10,10 +10,12 @@ cleaner = 'make -C bp_top/syn clean.sc'
 #testbin = '/mada/users/rkjayara/projs/mpdt/ariane/testbin/'
 #testbin = '/home/ramper/projs/mpdt/tmp/testbin/'
 #testbin = '/mada/users/rkjayara/projs/mpdt/tmp/testbin/'
-testbin  = '/soe/rkjayara/projs/mpdt/tmp/bp_testbin'
+#testbin  = '/soe/rkjayara/projs/mpdt/tmp/bp_testbin'
+testbin = '/soe/rkjayara/projs/mpdt/tmp/apr4_64no_amo_testbin'
 #testbin = '/soe/rkjayara/projs/mpdt/spec_d/tests/'
 #runs = '/home/ramper/projs/mpdt/tmp/runs/'
 runs = '/mada/users/rkjayara/projs/mpdt/spec_d/new/'
+#runs = '/soe/rkjayara/projs/mpdt/spec_d/apr4_64no_amo_runs/'
 testsuite = 'SUITE=riscv-tests '
 rn0 = 'RN=0 '
 rn1 = 'RN=1 '
@@ -85,5 +87,5 @@ for isa_test in os.listdir(testbin):
     print("Completed running : " + isa_test)
     counter = counter + 1
     print("counter: " + str(counter))
-    if counter == 2:
+    if counter == 3:
         break

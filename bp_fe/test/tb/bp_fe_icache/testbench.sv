@@ -107,7 +107,7 @@ module testbench
     cfg_bus_cast_li.freeze = '0;
     cfg_bus_cast_li.core_id = '0;
     cfg_bus_cast_li.icache_id = '0;
-    cfg_bus_cast_li.icache_mode = e_lce_mode_normal;
+    cfg_bus_cast_li.icache_mode = e_lce_mode_uncached;
     cfg_bus_cast_li.cce_mode = e_cce_mode_normal;
   end
 
