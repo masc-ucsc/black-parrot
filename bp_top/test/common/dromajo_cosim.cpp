@@ -528,8 +528,9 @@ extern "C" void is_mpdt(const svBitVecVal* npc, const svBitVecVal* fpc, svBit* m
         ++cur_idx_s;
       }
       mpdt_now.end_cycle = s_reader[cur_idx_s - 1].cycle;
-      
-      //set_mpdt_holder_cycles(s_reader[cur_idx_s-1].cycle - 6);
+      //DONT USE THIS 
+      //REDESIGN THIS to the above FIXME logic
+      //set_mpdt_holder_cycles(s_reader[cur_idx_s-1].cycle - 6); 
       printf("\nSET START ADDR: %x START CYCLE: %d END ADDR: %x END CYCLE %d FAKE INST: %x\n", mpdt_now.start_addr, mpdt_now.start_cycle, mpdt_now.end_addr, mpdt_now.end_cycle, mpdt_now.fake_inst);
     }
     is_mpdt_helper();
