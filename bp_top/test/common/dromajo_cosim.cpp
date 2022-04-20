@@ -31,8 +31,6 @@ typedef struct commit_reader_t {
   uint64_t                                pc;
   uint32_t                                opcode;
   uint64_t                                inst_cnt;
-  uint32_t                                rd_addr;
-  uint64_t                                data;
 }commit_reader_t;
 
 typedef struct stall_reader_t {
@@ -123,12 +121,13 @@ void struct_reader() {
   if(run_num == 1) {
     cout << "READING FILE START !!!!!!!!!!!!!!" <<  endl;
 
+    //mpdt_c_reader = fopen("/soe/rkjayara/projs/mpdt/spec_d/apr18new/0/commit_0.trace", "r");
     mpdt_c_reader = fopen("/soe/rkjayara/projs/mpdt/spec_d/new/0/commit_0.trace", "r");
     //mpdt_c_reader = fopen("/home/ramper/projs/mpdt/tmp/runs/0/commit_0.trace", "r");
     if(mpdt_c_reader != NULL) {
       cout << "READING FROM run0 commit_0.trace FILE" << endl;
-      while(fscanf(mpdt_c_reader, "%010d %08x %016x %08x %016x %08x %016x\n", &c_reader[c_read_ite].cycle, &c_reader[c_read_ite].hartid, &c_reader[c_read_ite].pc, &c_reader[c_read_ite].opcode, &c_reader[c_read_ite].inst_cnt, &c_reader[c_read_ite].rd_addr, &c_reader[c_read_ite].data) != EOF) {
-        //printf("cycle: %010d hartid: %08x pc: %016x opcode: %08x inst_cnt: %016x rd_addr: %08x data: %016x\n", c_reader[c_read_ite].cycle, c_reader[c_read_ite].hartid, c_reader[c_read_ite].pc, c_reader[c_read_ite].opcode, c_reader[c_read_ite].inst_cnt, c_reader[c_read_ite].rd_addr, c_reader[c_read_ite].data);
+      while(fscanf(mpdt_c_reader, "%010d %08x %016x %08x %016x\n", &c_reader[c_read_ite].cycle, &c_reader[c_read_ite].hartid, &c_reader[c_read_ite].pc, &c_reader[c_read_ite].opcode, &c_reader[c_read_ite].inst_cnt) != EOF) {
+        //printf("cycle: %010d hartid: %08x pc: %016x opcode: %08x inst_cnt: %016x rd_addr: %08x data: %016x\n", c_reader[c_read_ite].cycle, c_reader[c_read_ite].hartid, c_reader[c_read_ite].pc, c_reader[c_read_ite].opcode, c_reader[c_read_ite].inst_cnt);
         ++c_read_ite;
       }
       cout << "READ " << c_read_ite << " LINES IN TOTAL FOR COMMIT" << endl;
@@ -142,6 +141,7 @@ void struct_reader() {
       exit(1);
     }
 
+    //mpdt_s_reader = fopen("/soe/rkjayara/projs/mpdt/spec_d/apr18new/0/stall_0.trace", "r");
     mpdt_s_reader = fopen("/soe/rkjayara/projs/mpdt/spec_d/new/0/stall_0.trace", "r");
     //mpdt_s_reader = fopen("/home/ramper/projs/mpdt/tmp/runs/0/stall_0.trace", "r");
     if(mpdt_s_reader !=NULL) {
@@ -161,6 +161,7 @@ void struct_reader() {
       exit(1);
     }
 
+    //mpdt_p_reader = fopen("/soe/rkjayara/projs/mpdt/spec_d/apr18new/0/pc_dump.txt", "r");
     mpdt_p_reader = fopen("/soe/rkjayara/projs/mpdt/spec_d/new/0/pc_dump.txt", "r");
     //mpdt_p_reader = fopen("/home/ramper/projs/mpdt/tmp/runs/0/pc_dump.txt", "r");
     if(mpdt_p_reader != NULL) {
@@ -180,6 +181,7 @@ void struct_reader() {
       exit(1);
     }
 
+    //mpdt_i_reader = fopen("/soe/rkjayara/projs/mpdt/spec_d/apr18new/0/iC_dump.txt", "r");
     mpdt_i_reader = fopen("/soe/rkjayara/projs/mpdt/spec_d/new/0/iC_dump.txt", "r");
     //mpdt_i_reader = fopen("/home/ramper/projs/mpdt/tmp/runs/0/iC_dump.txt", "r");
     if(mpdt_i_reader != NULL) {
@@ -306,7 +308,7 @@ extern "C" void dromajo_printer() {
     cout << "RUN: " << run_num << " Counter at: " << counter << " cycle at: " << d_cycle_cnt << endl;
   counter++;
 
-  if(counter > 250000)
+  if(counter > 200000)
     exit(0);
 }
 
@@ -504,6 +506,59 @@ uint32_t inst_getter() {
   return inst_arr[inst_idx_cur];
 }
 
+void corrector()
+{
+  bool breaker =false;
+  //cur_idx_p = mpdt_now.start_cycle;
+  //printf("\nP_READER fpc%x insn %x valid %d\n", p_reader[cur_idx_p].fpc, p_reader[cur_idx_p].dat, p_reader[cur_idx_p].val);
+  //printf("\nSTART CORRECTOR SADD: %x SCYC: %d EADD: %x ECYC:%d FAKE INST: %x\n", mpdt_now.start_addr, mpdt_now.start_cycle, mpdt_now.end_addr, mpdt_now.end_cycle, mpdt_now.fake_inst);
+  if(init == 1 && run_num == 1 && nbf_complete ==1 && mpdt_now.start_addr > 0x080000000) {
+    //get min and max cycles from commit file
+    cur_idx_c = 0;
+    while(cur_idx_c < c_read_ite){
+      //fprintf(stderr, "cur_idx_c:%d cycle:%d pc:%x\n", cur_idx_c, c_reader[cur_idx_c].cycle, c_reader[cur_idx_c].pc);
+      if(c_reader[cur_idx_c].cycle == mpdt_now.start_cycle && c_reader[cur_idx_c].pc == mpdt_now.start_addr && c_reader[cur_idx_c + 1].pc == mpdt_now.end_addr)
+      {
+        mpdt_now.end_cycle = c_reader[cur_idx_c + 1].cycle;
+        //fprintf(stderr, "\n\nSETTING END CYCLE IN CORRECTOR %d cycle %d\n", cur_idx_c, c_reader[cur_idx_c + 1].cycle );
+        break; 
+      }
+      ++cur_idx_c;
+    }
+    //cant get min and max from commit file
+    if(cur_idx_c >= c_read_ite)
+    {
+      printf("\n\n CANT FIND MISPREDICT *********** EXITING\n\n");
+      exit(1);
+    }
+    //using min and max cycles, set actual cycles based on pc dump file
+    cur_idx_p = p_read_ite;
+    while(p_reader[cur_idx_p].cycle != mpdt_now.end_cycle && cur_idx_p > 0)
+    {
+      --cur_idx_p;
+    }
+    --cur_idx_p;
+    while(cur_idx_p > 0)
+    {
+      if(p_reader[cur_idx_p].fpc == mpdt_now.end_addr && p_reader[cur_idx_p].val ==1)
+      {
+        mpdt_now.end_cycle = p_reader[cur_idx_p - 1].cycle;
+        //fprintf(stderr, "\n\nCORRECTING END CYCLE %d cycle %d\n", cur_idx_c, c_reader[cur_idx_c + 1].cycle );
+        breaker = true;
+      }
+      if(p_reader[cur_idx_p].fpc == mpdt_now.start_addr && p_reader[cur_idx_p].val == 1)
+      {
+        mpdt_now.start_cycle = p_reader[cur_idx_p + 1].cycle;
+        //fprintf(stderr, "\n\nCORRECTING START CYCLE %d cycle %d\n", cur_idx_c, c_reader[cur_idx_c + 1].cycle );
+        if(breaker)
+          break;
+      }
+      --cur_idx_p;
+    }
+    printf("\nIN CORRECTOR SADD: %x SCYC: %d EADD: %x ECYC:%d FAKE INST: %x\n", mpdt_now.start_addr, mpdt_now.start_cycle, mpdt_now.end_addr, mpdt_now.end_cycle, mpdt_now.fake_inst);
+  }
+}
+
 extern "C" void is_mpdt(const svBitVecVal* npc, const svBitVecVal* fpc, svBit* mpdt_flag, svBitVecVal* fake_inst, svBitVecVal* fake_addr, svBit* selector) {
   if(init == 1 && run_num == 1 && nbf_complete ==1) {    
     if(d_cycle_cnt >= s_reader[cur_idx_s].cycle && cur_idx_s != s_read_ite && d_cycle_cnt >= mpdt_now.end_cycle) {
@@ -515,7 +570,7 @@ extern "C" void is_mpdt(const svBitVecVal* npc, const svBitVecVal* fpc, svBit* m
       //PC INDICATED HERE IS CORRECT, must get the worng fetch pc from pc_dump and corresponding 
       //cycles of fetch and insert there.
       //********FIX ME************//
-      mpdt_now.start_addr = s_reader[cur_idx_s].pc;
+      mpdt_now.start_addr = s_reader[cur_idx_s -1].pc;
       mpdt_now.end_addr   = s_reader[cur_idx_s].pc;
       
       //This can be done here or every time we detect mpdt below
@@ -523,24 +578,28 @@ extern "C" void is_mpdt(const svBitVecVal* npc, const svBitVecVal* fpc, svBit* m
       //Cycle here is based on stall, not based on pc_dump
       //change to match incorrect fetch from pc_dump based on commit and stall and pc_dump
       //********FIX ME************//
-      mpdt_now.start_cycle = s_reader[cur_idx_s].cycle;    
+      mpdt_now.start_cycle = s_reader[cur_idx_s -1].cycle;    
       while(s_reader[cur_idx_s].operation == 13){
         ++cur_idx_s;
       }
       mpdt_now.end_cycle = s_reader[cur_idx_s - 1].cycle;
+      //printf("\nBEFORE COR START ADDR: %x START CYCLE: %d END ADDR: %x END CYCLE:%d FAKE INST: %x\n", mpdt_now.start_addr, mpdt_now.start_cycle, mpdt_now.end_addr, mpdt_now.end_cycle, mpdt_now.fake_inst);
+      corrector();
       //DONT USE THIS 
       //REDESIGN THIS to the above FIXME logic
       //set_mpdt_holder_cycles(s_reader[cur_idx_s-1].cycle - 6); 
-      printf("\nSET START ADDR: %x START CYCLE: %d END ADDR: %x END CYCLE %d FAKE INST: %x\n", mpdt_now.start_addr, mpdt_now.start_cycle, mpdt_now.end_addr, mpdt_now.end_cycle, mpdt_now.fake_inst);
+      //printf("\nAFTER COR START ADDR: %x START CYCLE: %d END ADDR: %x END CYCLE:%d FAKE INST: %x\n", mpdt_now.start_addr, mpdt_now.start_cycle, mpdt_now.end_addr, mpdt_now.end_cycle, mpdt_now.fake_inst);
     }
     is_mpdt_helper();
     if(n_not_f == false) {
       if(mpdt_current_flag) {
+        if(nbf_complete == 1) {
         //mpdt_now.fake_inst  = inst_getter();
-        *mpdt_flag = (svBit)1;
-        *fake_inst = (svBitVecVal)mpdt_now.fake_inst;
-        *fake_addr = (svBitVecVal)0x000000000;
-        *selector  = (svBit)0;
+          *mpdt_flag = (svBit)1;
+          *fake_inst = (svBitVecVal)mpdt_now.fake_inst;
+          *fake_addr = (svBitVecVal)0x000000000;
+          *selector  = (svBit)0;
+        }
       }
       else {
         *mpdt_flag = (svBit)0;

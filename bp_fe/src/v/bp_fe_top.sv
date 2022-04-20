@@ -82,6 +82,7 @@ module bp_fe_top
   logic [38:0]  fake_addr_l;
   bit   [38:0]  npc_is;
   bit   [38:0]  fpc_is;
+  logic         vall;
 
   // FSM
   enum logic [1:0] {e_wait=2'd0, e_run, e_stall} state_n, state_r;
@@ -249,8 +250,8 @@ module bp_fe_top
      ,.trans_en_i(shadow_translation_en_r)
      // Supervisor use of user memory is always disabled for immu
      ,.sum_i('0)
-     ,.uncached_mode_i((cfg_bus_cast_i.icache_mode == e_lce_mode_uncached))
-     ,.nonspec_mode_i((cfg_bus_cast_i.icache_mode == e_lce_mode_uncached))
+     ,.uncached_mode_i((cfg_bus_cast_i.icache_mode == e_lce_mode_normal))
+     ,.nonspec_mode_i((cfg_bus_cast_i.icache_mode == e_lce_mode_normal))
      ,.hio_mask_i(cfg_bus_cast_i.hio_mask)
 
      ,.w_v_i(itlb_fill_v)
@@ -363,10 +364,10 @@ module bp_fe_top
      ,.data_o({v_if2_r, v_if1_r})
      );
 
-  wire icache_miss    = v_if2_r & ~icache_data_v_lo;
+  wire icache_miss    = v_if2_r & ~vall;
   wire queue_miss     = v_if2_r & ~fe_queue_ready_i;
   wire fe_exception_v = v_if2_r & (instr_access_fault_r | instr_page_fault_r | itlb_miss_r | icache_miss_v_lo);
-  wire fe_instr_v     = v_if2_r & icache_data_v_lo;
+  wire fe_instr_v     = v_if2_r & vall;
   assign fe_queue_v_o = fe_queue_ready_i & (fe_instr_v | fe_exception_v) & ~cmd_nonattaboy_v;
 
   assign icache_poison_tl = ovr_lo | fe_exception_v | queue_miss | cmd_nonattaboy_v;
@@ -379,18 +380,22 @@ module bp_fe_top
   assign fetch_exception_v_li = fe_queue_v_o & fe_exception_v;
   assign fetch_fail_v_li      = v_if2_r & ~fe_queue_v_o;
   assign fetch_li_orig        = icache_data_lo;
+  assign  vall                = icache_data_v_lo;
 
   wire stall   = fetch_fail_v_li | cmd_nonattaboy_v;
   wire unstall = icache_ready_lo & fe_queue_ready_i & ~cmd_nonattaboy_v;
   always_comb begin
     npc_is = next_pc_lo;
     fpc_is = fetch_pc_lo;
+    //vall   = icache_data_v_lo;
     is_mpdt(npc_is, fpc_is, mpdt_flag, fake_inst, fake_addr, selector);
     fake_inst_l = fake_inst;
     fake_addr_l = fake_addr;
     if(mpdt_flag == 1'b1) begin
       //if(selector == 1'b0) begin
         fetch_li    = fake_inst_l;
+        vall = 1'b1;
+        //$display("INSERTING fpc %x npc %x insn %x", fpc_is, npc_is, fake_inst_l );
         //next_pc_lo  = next_pc_lo_orig;
       //end else if(selector == 1'b1) begin
         //fetch_li    = fetch_li_orig;
@@ -398,6 +403,8 @@ module bp_fe_top
       //end
     end else begin
       fetch_li    = fetch_li_orig;
+      vall = icache_data_v_lo;
+
       //next_pc_lo  = next_pc_lo_orig;
     end
     if (fe_exception_v)
@@ -458,7 +465,7 @@ module bp_fe_top
     bit [38:0] npc = next_pc_lo;
     bit [38:0] fpc = fetch_pc_lo;
     bit [31:0] dat = fetch_li;
-    bit        val = icache_data_v_lo;
+    bit        val = vall;
     //bit ed = clk_i;
     pc_dumper(npc, fpc, dat, val);
   end
